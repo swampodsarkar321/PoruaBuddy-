@@ -143,3 +143,12 @@ export interface ProductReview {
   status: 'pending' | 'approved';
   createdAt: string;
 }
+
+export interface LiveChatMessage {
+  id: string;
+  sessionId: string;
+  sender: 'user' | 'admin';
+  text: string;
+  read: boolean;
+  createdAt: string;
+}

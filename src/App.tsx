@@ -25,6 +25,7 @@ import { DevDocsModal } from './components/DevDocsModal';
 import { SiteProtection } from './components/SiteProtection';
 import { OfferBar } from './components/OfferBar';
 import { StickyMobileCTA } from './components/StickyMobileCTA';
+import { LiveChatWidget } from './components/LiveChatWidget';
 import { ProductCompare } from './components/ProductCompare';
 import { WhatsAppIcon } from './components/icons';
 import { waLink } from './utils/whatsapp';
@@ -170,6 +171,7 @@ const MainContent: React.FC = () => {
       <CartDrawer />
       <ProductDetailModal />
       <StickyMobileCTA />
+      <LiveChatWidget />
       <ProductCompare />
       <OrderSuccessModal />
       <OrderTrackerModal />

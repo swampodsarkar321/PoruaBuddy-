@@ -11,7 +11,7 @@ import {
   remove,
   update,
 } from 'firebase/database';
-import type { Product, Inquiry, Order, SiteSettings, Testimonial, PortfolioItem, ProductReview } from '../types';
+import type { Product, Inquiry, Order, SiteSettings, Testimonial, PortfolioItem, ProductReview, LiveChatMessage } from '../types';
 
 // Single Firebase project — chat-2-me-c3213 (Realtime Database + Auth).
 // Old Firestore project is fully removed.
@@ -43,6 +43,7 @@ export const rtdbOrderRef = (id: string) => ref(rtdb, `orders/${id}`);
 export const rtdbTestimonialsRef = () => ref(rtdb, 'testimonials');
 export const rtdbPortfolioRef = () => ref(rtdb, 'portfolio');
 export const rtdbReviewsRef = () => ref(rtdb, 'reviews');
+export const rtdbLiveChatRef = () => ref(rtdb, 'livechat');
 
 // ---- Converters ----
 export const snapToProducts = (val: unknown): Product[] => {
@@ -83,6 +84,11 @@ export const pushReviewRTDB = (review: ProductReview) => push(rtdbReviewsRef(), 
 export const updateReviewRTDB = (id: string, updates: Partial<ProductReview>) =>
   update(ref(rtdb, `reviews/${id}`), updates);
 export const deleteReviewRTDB = (id: string) => remove(ref(rtdb, `reviews/${id}`));
+
+// ---- Live Chat ----
+export const sendLiveChatRTDB = (msg: LiveChatMessage) => push(rtdbLiveChatRef(), msg);
+export const updateLiveChatRTDB = (id: string, updates: Partial<LiveChatMessage>) =>
+  update(ref(rtdb, `livechat/${id}`), updates);
 
 // ---- Products ----
 export const saveProductRTDB = (product: Product) =>

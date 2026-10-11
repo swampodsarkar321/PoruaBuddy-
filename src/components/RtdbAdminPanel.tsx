@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useApp } from '../context/AppContext';
 import { signInWithEmailAndPassword, signOut } from 'firebase/auth';
 import { auth } from '../firebase/rtdb';
-import { Product, ProductCategory, Inquiry, Testimonial, PortfolioItem, ProductReview } from '../types';
+import { Product, ProductCategory, Inquiry, Testimonial, PortfolioItem, ProductReview, LiveChatMessage } from '../types';
 import {
   rtdbProductsRef,
   rtdbInquiriesRef,
@@ -27,6 +27,9 @@ import {
   deletePortfolioRTDB,
   updateReviewRTDB,
   deleteReviewRTDB,
+  sendLiveChatRTDB,
+  updateLiveChatRTDB,
+  rtdbLiveChatRef,
   onValue,
 } from '../firebase/rtdb';
 import {
@@ -66,7 +69,7 @@ const emptyProduct = (): Product => ({
 
 const inputCls = "w-full px-4 py-2.5 rounded-xl bg-white border border-stone-200 text-sm text-stone-900 placeholder-stone-400 outline-none focus:border-stone-900 focus:ring-2 focus:ring-stone-900/10 shadow-sm";
 
-type Tab = 'dashboard' | 'products' | 'orders' | 'inbox' | 'reviews' | 'content' | 'customers' | 'settings';
+type Tab = 'dashboard' | 'products' | 'orders' | 'inbox' | 'livechat' | 'reviews' | 'content' | 'customers' | 'settings';
 
 const REPLY_TEMPLATES = [
   { label: 'Price list', text: 'Hello! Thanks for messaging Sairah Labs 🙏\n\nOur prices:\n• Business website — from ৳3,500\n• Online store — from ৳5,500\n• AI chatbot — ৳800/month\n\nWhich one do you need? I will share a free quote.' },
@@ -85,6 +88,10 @@ export const RtdbAdminPanel: React.FC = () => {
   const [testimonials, setTestimonials] = useState<Testimonial[]>([]);
   const [portfolio, setPortfolio] = useState<PortfolioItem[]>([]);
   const [allReviews, setAllReviews] = useState<ProductReview[]>([]);
+  const [liveChats, setLiveChats] = useState<Array<{ sessionId: string; last: string; unread: number; time: string }>>([]);
+  const [activeChat, setActiveChat] = useState<string | null>(null);
+  const [chatMessages, setChatMessages] = useState<LiveChatMessage[]>([]);
+  const [chatInput, setChatInput] = useState('');
   const [editing, setEditing] = useState<Product | null>(null);
   const [featText, setFeatText] = useState('');
   const [waNumber, setWaNumber] = useState('');
@@ -100,6 +107,35 @@ export const RtdbAdminPanel: React.FC = () => {
   const [pCat, setPCat] = useState('');
   const [pDesc, setPDesc] = useState('');
   const [pStat, setPStat] = useState('');
+
+  useEffect(() => {
+    if (!activeChat) { setChatMessages([]); return; }
+    const off = onValue(rtdbLiveChatRef(), (snap) => {
+      const val = snap.val();
+      if (!val || typeof val !== 'object') return;
+      const list = Object.entries(val as Record<string, LiveChatMessage>)
+        .map(([id, m]) => ({ ...m, id }))
+        .filter((m) => m.sessionId === activeChat)
+        .sort((a, b) => a.createdAt.localeCompare(b.createdAt));
+      setChatMessages(list);
+      list.filter((m) => m.sender === 'user' && !m.read).forEach((m) => updateLiveChatRTDB(m.id, { read: true }).catch(() => {}));
+    }, () => {});
+    return () => off();
+  }, [activeChat]);
+
+  const replyChat = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!chatInput.trim() || !activeChat) return;
+    await sendLiveChatRTDB({
+      id: `lc-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 7)}`,
+      sessionId: activeChat,
+      sender: 'admin',
+      text: chatInput.trim(),
+      read: false,
+      createdAt: new Date().toISOString(),
+    });
+    setChatInput('');
+  };
 
   const prevCounts = React.useRef({ inbox: -1, orders: -1 });
 
@@ -117,6 +153,21 @@ export const RtdbAdminPanel: React.FC = () => {
       onValue(rtdbTestimonialsRef(), (s) => setTestimonials(snapToTestimonials(s.val())), () => {}),
       onValue(rtdbPortfolioRef(), (s) => setPortfolio(snapToPortfolio(s.val())), () => {}),
       onValue(rtdbReviewsRef(), (s) => setAllReviews(snapToReviews(s.val())), () => {}),
+      onValue(rtdbLiveChatRef(), (snap) => {
+        const val = snap.val();
+        if (!val || typeof val !== 'object') { setLiveChats([]); return; }
+        const bySession = new Map<string, { last: string; unread: number; time: string }>();
+        Object.values(val as Record<string, LiveChatMessage>).forEach((m) => {
+          const cur = bySession.get(m.sessionId) || { last: '', unread: 0, time: '' };
+          if (m.sender === 'user') {
+            cur.last = m.text;
+            cur.unread += m.read ? 0 : 1;
+          }
+          if (m.createdAt > cur.time) cur.time = m.createdAt;
+          bySession.set(m.sessionId, cur);
+        });
+        setLiveChats([...bySession.entries()].map(([sessionId, v]) => ({ sessionId, ...v })).sort((a, b) => b.time.localeCompare(a.time)));
+      }, () => {}),
     ];
     return () => offs.forEach((o) => o());
   }, [isAllowed]);
@@ -179,6 +230,7 @@ export const RtdbAdminPanel: React.FC = () => {
     { id: 'products', label: 'Products', icon: ShoppingBag },
     { id: 'orders', label: 'Orders', icon: Package, badge: orders.length },
     { id: 'inbox', label: 'Inbox', icon: MessagesSquare, badge: inquiries.length },
+    { id: 'livechat', label: 'Live Chat', icon: MessagesSquare, badge: liveChats.filter((c) => c.unread > 0).length },
     { id: 'customers', label: 'Customers', icon: Users },
     { id: 'reviews', label: 'Reviews', icon: Star, badge: allReviews.filter((r) => r.status === 'pending').length },
     { id: 'content', label: 'Content', icon: Star },
@@ -424,6 +476,58 @@ export const RtdbAdminPanel: React.FC = () => {
                 </div>
               </div>
             ))}
+          </div>
+        )}
+
+        {/* LIVE CHAT */}
+        {tab === 'livechat' && (
+          <div className="grid lg:grid-cols-5 gap-4">
+            <div className="lg:col-span-2 space-y-2.5">
+              <p className="text-xs font-bold uppercase tracking-wider text-stone-400 pb-1">Conversations ({liveChats.length})</p>
+              {liveChats.length === 0 && <EmptyBox text="No live chat conversations yet — users can start from the floating chat." />}
+              {liveChats.map((c) => (
+                <button key={c.sessionId} onClick={() => setActiveChat(c.sessionId)}
+                  className={`w-full text-left p-4 rounded-2xl border transition ${activeChat === c.sessionId ? 'bg-stone-900 text-white border-stone-900' : 'bg-white border-stone-200 hover:border-stone-400'}`}>
+                  <div className="flex items-center justify-between gap-2">
+                    <p className={`text-[13px] font-bold truncate ${activeChat === c.sessionId ? 'text-white' : 'text-stone-900'}`}>
+                      Visitor {c.sessionId.slice(-5)}
+                    </p>
+                    {c.unread > 0 && <span className="min-w-5 h-5 px-1 rounded-full bg-emerald-500 text-white text-[10px] font-bold flex items-center justify-center shrink-0">{c.unread}</span>}
+                  </div>
+                  <p className={`text-xs truncate mt-0.5 ${activeChat === c.sessionId ? 'text-stone-400' : 'text-stone-400'}`}>{c.last || 'New conversation'}</p>
+                  <p className={`text-[10px] mt-1 ${activeChat === c.sessionId ? 'text-stone-500' : 'text-stone-300'}`}>{c.time ? new Date(c.time).toLocaleString() : ''}</p>
+                </button>
+              ))}
+            </div>
+            <div className="lg:col-span-3 rounded-3xl bg-white border border-stone-200 shadow-sm overflow-hidden flex flex-col" style={{ height: '520px' }}>
+              {!activeChat ? (
+                <div className="flex-1 flex items-center justify-center text-sm text-stone-400">Select a conversation to reply</div>
+              ) : (
+                <>
+                  <div className="px-5 py-3.5 border-b border-stone-100 flex items-center justify-between">
+                    <p className="text-[13px] font-bold text-stone-900">Visitor {activeChat.slice(-5)}</p>
+                    <button onClick={() => setActiveChat(null)} className="p-1.5 rounded-lg text-stone-400 hover:text-stone-900 hover:bg-stone-100"><X className="w-4 h-4" /></button>
+                  </div>
+                  <div className="flex-1 p-4 overflow-y-auto space-y-2.5 bg-stone-50/60">
+                    {chatMessages.map((m) => (
+                      <div key={m.id} className={`flex ${m.sender === 'admin' ? 'justify-end' : 'justify-start'}`}>
+                        <div className={`max-w-[80%] px-3.5 py-2.5 rounded-2xl text-[13px] leading-relaxed ${m.sender === 'admin' ? 'bg-stone-900 text-white rounded-br-md' : 'bg-white border border-stone-200 text-stone-700 rounded-bl-md shadow-sm'}`}>
+                          {m.text}
+                          <span className="block text-[10px] opacity-50 mt-1">{new Date(m.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                  <form onSubmit={replyChat} className="p-3 border-t border-stone-100 flex gap-2">
+                    <input value={chatInput} onChange={(e) => setChatInput(e.target.value)} placeholder="Type a reply..."
+                      className="flex-1 px-4 py-2.5 rounded-xl bg-stone-100 text-[13px] outline-none focus:ring-2 focus:ring-stone-900/10" />
+                    <button type="submit" className="px-5 rounded-xl bg-stone-900 text-white text-[13px] font-bold hover:bg-stone-700 shrink-0">
+                      Send
+                    </button>
+                  </form>
+                </>
+              )}
+            </div>
           </div>
         )}
 
