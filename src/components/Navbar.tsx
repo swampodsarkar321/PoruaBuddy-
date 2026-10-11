@@ -13,6 +13,7 @@ export const Navbar: React.FC = () => {
     { id: 'portfolio', label: 'Work' },
     { id: 'products', label: 'Shop' },
     { id: 'chatbot', label: 'AI Chatbot' },
+    { id: 'blog', label: 'Blog' },
     { id: 'contact', label: 'Contact' },
   ];
   const go = (id: string) => { setActiveTab(id); setOpen(false); window.scrollTo({ top: 0 }); };

@@ -51,6 +51,7 @@ export const Footer: React.FC = () => {
           <p className="font-semibold text-stone-900 mb-3">Support</p>
           <div className="space-y-2.5 text-stone-500">
             <button onClick={() => setActiveTab('chatbot')} className="block hover:text-stone-900">AI Chatbot</button>
+            <button onClick={() => setActiveTab('blog')} className="block hover:text-stone-900">Blog</button>
             <button onClick={() => setActiveTab('contact')} className="block hover:text-stone-900">Contact</button>
           </div>
         </div>

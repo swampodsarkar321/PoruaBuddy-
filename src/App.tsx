@@ -9,6 +9,9 @@ import { ChatbotSection } from './components/ChatbotSection';
 import { WebDevServicesSection } from './components/WebDevServicesSection';
 import { PortfolioSection } from './components/PortfolioSection';
 import { ProcessSection } from './components/ProcessSection';
+import { PricingSection } from './components/PricingSection';
+import { FaqSection } from './components/FaqSection';
+import { BlogSection } from './components/BlogSection';
 import { Testimonials } from './components/Testimonials';
 import { ContactSection } from './components/ContactSection';
 import { AdminDashboard } from './components/AdminDashboard';
@@ -60,8 +63,10 @@ const MainContent: React.FC = () => {
             <Hero />
             <WebDevServicesSection />
             <PortfolioSection />
+            <PricingSection />
             <ProcessSection />
             <Testimonials />
+            <FaqSection />
 
             {/* Shop — secondary, only when products exist */}
             {hasPublishedProducts && (
@@ -141,6 +146,9 @@ const MainContent: React.FC = () => {
 
         {/* VIEW: PORTFOLIO */}
         {activeTab === 'portfolio' && <PortfolioSection />}
+
+        {/* VIEW: BLOG */}
+        {activeTab === 'blog' && <BlogSection />}
 
         {/* VIEW: CONTACT & FAQ */}
         {activeTab === 'contact' && <ContactSection />}
