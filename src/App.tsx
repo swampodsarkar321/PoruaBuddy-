@@ -15,6 +15,7 @@ import { BlogSection } from './components/BlogSection';
 import { Testimonials } from './components/Testimonials';
 import { ContactSection } from './components/ContactSection';
 import { AdminDashboard } from './components/AdminDashboard';
+import { RtdbAdminPanel } from './components/RtdbAdminPanel';
 import { CartDrawer } from './components/CartDrawer';
 import { ProductDetailModal } from './components/ProductDetailModal';
 import { OrderSuccessModal } from './components/OrderSuccessModal';
@@ -155,6 +156,9 @@ const MainContent: React.FC = () => {
 
         {/* VIEW: ADMIN DASHBOARD */}
         {activeTab === 'admin' && <AdminDashboard />}
+
+        {/* VIEW: RTDB ADMIN (separate Realtime Database panel) */}
+        {activeTab === 'rtdb-admin' && <RtdbAdminPanel />}
       </main>
 
       {/* Floating WhatsApp Action Button */}

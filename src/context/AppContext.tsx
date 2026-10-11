@@ -36,6 +36,13 @@ import {
   OrderStatus
 } from '../types';
 import { INITIAL_PRODUCTS, INITIAL_SITE_SETTINGS } from '../data/initialProducts';
+import {
+  rtdbProductsRef,
+  rtdbSettingsRef,
+  pushInquiryRTDB,
+  snapToProducts,
+  onValue,
+} from '../firebase/rtdb';
 
 interface AppContextType {
   // Navigation
@@ -244,6 +251,30 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       console.warn('Site settings initialization error:', e);
     }
     return () => unsubscribe();
+  }, []);
+
+  // RTDB (chat-2-me-c3213) overrides: products + settings win when present
+  useEffect(() => {
+    let offProducts = () => {};
+    let offSettings = () => {};
+    try {
+      offProducts = onValue(rtdbProductsRef(), (snap) => {
+        const list = snapToProducts(snap.val());
+        if (list.length > 0) {
+          setProducts(list);
+          setIsLoadingProducts(false);
+        }
+      }, () => {});
+      offSettings = onValue(rtdbSettingsRef(), (snap) => {
+        const val = snap.val();
+        if (val && typeof val === 'object') {
+          setSiteSettings((prev) => ({ ...prev, ...val }));
+        }
+      }, () => {});
+    } catch (e) {
+      console.warn('RTDB sync unavailable:', e);
+    }
+    return () => { offProducts(); offSettings(); };
   }, []);
 
   // Sync Orders for Admin or Authenticated User
@@ -569,6 +600,13 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     } catch (err) {
       console.warn('Inquiry cached locally:', err);
       showToast('Thank you! Your request has been received.', 'success');
+    }
+
+    // Mirror to RTDB (separate DB admin panel reads from here)
+    try {
+      await pushInquiryRTDB(newInquiry);
+    } catch (err) {
+      console.warn('RTDB inquiry mirror failed:', err);
     }
 
     setInquiries((prev) => [newInquiry, ...prev]);

@@ -5,7 +5,7 @@ import { Logo } from './Logo';
 import { waLink } from '../utils/whatsapp';
 
 export const Navbar: React.FC = () => {
-  const { activeTab, setActiveTab, cartCount, setIsCartOpen, siteSettings } = useApp();
+  const { activeTab, setActiveTab, cartCount, setIsCartOpen, siteSettings, isAdmin } = useApp();
   const [open, setOpen] = useState(false);
   const items = [
     { id: 'home', label: 'Home' },
@@ -15,6 +15,7 @@ export const Navbar: React.FC = () => {
     { id: 'chatbot', label: 'AI Chatbot' },
     { id: 'blog', label: 'Blog' },
     { id: 'contact', label: 'Contact' },
+    ...(isAdmin ? [{ id: 'rtdb-admin', label: 'DB Admin' }] : []),
   ];
   const go = (id: string) => { setActiveTab(id); setOpen(false); window.scrollTo({ top: 0 }); };
 
