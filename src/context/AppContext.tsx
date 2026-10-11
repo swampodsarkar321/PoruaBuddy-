@@ -122,8 +122,22 @@ interface AppContextType {
 const AppContext = createContext<AppContextType | null>(null);
 
 export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  // Navigation states
-  const [activeTab, setActiveTab] = useState<string>('home');
+  // Navigation states — deep-linkable via URL hash (e.g. /#rtdb-admin)
+  const VALID_TABS = ['home', 'products', 'pc-optimization', 'gaming-tools', 'windows-panels', 'websites', 'chatbot', 'custom-dev', 'portfolio', 'blog', 'contact', 'admin', 'rtdb-admin'];
+  const [activeTab, setActiveTabState] = useState<string>(() => {
+    try {
+      const h = window.location.hash.replace('#', '');
+      return VALID_TABS.includes(h) ? h : 'home';
+    } catch {
+      return 'home';
+    }
+  });
+  const setActiveTab = (tab: string) => {
+    setActiveTabState(tab);
+    try {
+      window.location.hash = tab === 'home' ? '' : tab;
+    } catch {}
+  };
   const [selectedCategory, setSelectedCategory] = useState<ProductCategory | 'all'>('all');
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
