@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://srs-digital-labs-ltdl.vercel.app/sitemap.xml
