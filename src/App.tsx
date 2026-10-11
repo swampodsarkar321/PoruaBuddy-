@@ -24,7 +24,6 @@ import { PoliciesModal } from './components/PoliciesModal';
 import { DevDocsModal } from './components/DevDocsModal';
 import { SiteProtection } from './components/SiteProtection';
 import { OfferBar } from './components/OfferBar';
-import { ChatWidget } from './components/ChatWidget';
 import { StickyMobileCTA } from './components/StickyMobileCTA';
 import { ProductCompare } from './components/ProductCompare';
 import { WhatsAppIcon } from './components/icons';
@@ -170,7 +169,6 @@ const MainContent: React.FC = () => {
       {/* Slide-overs & Modals */}
       <CartDrawer />
       <ProductDetailModal />
-      <ChatWidget />
       <StickyMobileCTA />
       <ProductCompare />
       <OrderSuccessModal />
