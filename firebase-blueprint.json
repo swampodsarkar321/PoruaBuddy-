@@ -1,0 +1,148 @@
+{
+  "entities": {
+    "User": {
+      "title": "User",
+      "description": "User profile in SRS Web Studio",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "email": { "type": "string" },
+        "displayName": { "type": "string" },
+        "role": { "type": "string", "enum": ["customer", "admin"] },
+        "phoneNumber": { "type": "string" },
+        "createdAt": { "type": "string" },
+        "updatedAt": { "type": "string" }
+      },
+      "required": ["id", "email", "role", "createdAt"]
+    },
+    "Admin": {
+      "title": "Admin",
+      "description": "Designated administrator identity",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string" },
+        "email": { "type": "string" },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["uid", "email"]
+    },
+    "Product": {
+      "title": "Product",
+      "description": "Digital product or service item",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "slug": { "type": "string" },
+        "category": { "type": "string" },
+        "description": { "type": "string" },
+        "priceBDT": { "type": "number" },
+        "discountPriceBDT": { "type": "number" },
+        "imageUrls": { "type": "array" },
+        "features": { "type": "array" },
+        "compatibility": { "type": "string" },
+        "deliveryType": { "type": "string" },
+        "licenseInfo": { "type": "string" },
+        "version": { "type": "string" },
+        "isPublished": { "type": "boolean" },
+        "createdAt": { "type": "string" },
+        "updatedAt": { "type": "string" }
+      },
+      "required": ["id", "name", "category", "priceBDT", "isPublished"]
+    },
+    "Order": {
+      "title": "Order",
+      "description": "Customer purchase order with manual payment verification",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "userId": { "type": "string" },
+        "customerName": { "type": "string" },
+        "customerEmail": { "type": "string" },
+        "customerPhone": { "type": "string" },
+        "items": { "type": "array" },
+        "totalAmountBDT": { "type": "number" },
+        "paymentMethod": { "type": "string" },
+        "transactionId": { "type": "string" },
+        "senderPhone": { "type": "string" },
+        "paymentStatus": {
+          "type": "string",
+          "enum": [
+            "Pending",
+            "Awaiting Payment",
+            "Payment Under Review",
+            "Paid",
+            "In Progress",
+            "Ready for Delivery",
+            "Completed",
+            "Rejected",
+            "Cancelled"
+          ]
+        },
+        "deliveryNotes": { "type": "string" },
+        "licenseKeys": { "type": "array" },
+        "downloadLinks": { "type": "array" },
+        "createdAt": { "type": "string" },
+        "updatedAt": { "type": "string" }
+      },
+      "required": ["id", "customerEmail", "customerPhone", "items", "totalAmountBDT", "paymentStatus", "createdAt"]
+    },
+    "Inquiry": {
+      "title": "Inquiry",
+      "description": "Customer custom quotation or AI chatbot inquiry",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "email": { "type": "string" },
+        "phone": { "type": "string" },
+        "serviceType": { "type": "string" },
+        "message": { "type": "string" },
+        "budget": { "type": "string" },
+        "status": { "type": "string", "enum": ["New", "In Discussion", "Closed"] },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["id", "name", "email", "serviceType", "message", "createdAt"]
+    },
+    "SiteSettings": {
+      "title": "SiteSettings",
+      "description": "Global storefront configurations such as bKash/Nagad accounts",
+      "type": "object",
+      "properties": {
+        "bkashNumber": { "type": "string" },
+        "nagadNumber": { "type": "string" },
+        "whatsappNumber": { "type": "string" },
+        "paymentInstructions": { "type": "string" },
+        "heroNotice": { "type": "string" },
+        "updatedAt": { "type": "string" }
+      },
+      "required": ["bkashNumber", "nagadNumber", "whatsappNumber"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "User",
+      "description": "User profiles restricted to owner and admin"
+    },
+    "/admins/{adminId}": {
+      "schema": "Admin",
+      "description": "Master admin record list"
+    },
+    "/products/{productId}": {
+      "schema": "Product",
+      "description": "Publicly readable marketplace products, writable only by admins"
+    },
+    "/orders/{orderId}": {
+      "schema": "Order",
+      "description": "Customer purchase orders readable by owner & admin; status editable only by admin"
+    },
+    "/inquiries/{inquiryId}": {
+      "schema": "Inquiry",
+      "description": "Customer service and chatbot inquiry tickets"
+    },
+    "/siteSettings/{settingId}": {
+      "schema": "SiteSettings",
+      "description": "Store configuration accessible by all, editable by admins"
+    }
+  }
+}

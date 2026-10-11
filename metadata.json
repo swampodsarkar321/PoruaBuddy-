@@ -1,0 +1,6 @@
+{
+  "name": "SRS Web Studio",
+  "description": "Premium digital marketplace & web agency by Swampod. PC optimization, gaming tools, website templates, custom development, and AI Messenger chatbots.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
