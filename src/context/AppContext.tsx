@@ -14,11 +14,13 @@ import {
   rtdbInquiriesRef,
   rtdbTestimonialsRef,
   rtdbPortfolioRef,
+  rtdbReviewsRef,
   snapToProducts,
   snapToOrders,
   snapToInquiries,
   snapToTestimonials,
   snapToPortfolio,
+  snapToReviews,
   saveProductRTDB,
   deleteProductRTDB,
   saveOrderRTDB,
@@ -26,6 +28,7 @@ import {
   getOrderRTDB,
   pushInquiryRTDB,
   updateInquiryRTDB,
+  pushReviewRTDB,
   saveSettingsRTDB,
   onValue,
 } from '../firebase/rtdb';
@@ -36,6 +39,7 @@ import {
   SiteSettings,
   Testimonial,
   PortfolioItem,
+  ProductReview,
   CartItem,
   ProductCategory,
   OrderStatus
@@ -113,6 +117,10 @@ interface AppContextType {
   testimonials: Testimonial[];
   portfolio: PortfolioItem[];
 
+  // Product reviews (user-submitted, admin-approved)
+  reviews: ProductReview[];
+  submitProductReview: (data: Omit<ProductReview, 'id' | 'status' | 'createdAt'>) => Promise<void>;
+
   // Site Settings
   siteSettings: SiteSettings;
   updateSiteSettings: (settings: Partial<SiteSettings>) => Promise<void>;
@@ -172,6 +180,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [inquiries, setInquiries] = useState<Inquiry[]>([]);
   const [testimonials, setTestimonials] = useState<Testimonial[]>(INITIAL_TESTIMONIALS);
   const [portfolio, setPortfolio] = useState<PortfolioItem[]>([]);
+  const [reviews, setReviews] = useState<ProductReview[]>([]);
   const [siteSettings, setSiteSettings] = useState<SiteSettings>(INITIAL_SITE_SETTINGS);
 
   // Cart state persisted to localStorage
@@ -268,8 +277,26 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       setTestimonials(list.length > 0 ? list : INITIAL_TESTIMONIALS);
     }, () => {});
     const off2 = onValue(rtdbPortfolioRef(), (snap) => setPortfolio(snapToPortfolio(snap.val())), () => {});
-    return () => { off1(); off2(); };
+    const off3 = onValue(rtdbReviewsRef(), (snap) => setReviews(snapToReviews(snap.val())), () => {});
+    return () => { off1(); off2(); off3(); };
   }, []);
+
+  // Product review submission (goes to pending, admin approves)
+  const submitProductReview = async (data: Omit<ProductReview, 'id' | 'status' | 'createdAt'>) => {
+    const review: ProductReview = {
+      ...data,
+      id: `rev-${Date.now().toString(36)}`,
+      status: 'pending',
+      createdAt: new Date().toISOString(),
+    };
+    try {
+      await pushReviewRTDB(review);
+      showToast('Review submitted! It will appear after admin approval.', 'success');
+    } catch {
+      showToast("Couldn't submit review. Please try again.", 'error');
+      throw new Error('review-failed');
+    }
+  };
 
   // Cart Handlers
   const addToCart = (product: Product) => {
@@ -621,6 +648,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         updateInquiryStatus,
         testimonials,
         portfolio,
+        reviews,
+        submitProductReview,
         siteSettings,
         updateSiteSettings,
         toast,

@@ -2,17 +2,19 @@ import React, { useEffect, useState } from 'react';
 import { useApp } from '../context/AppContext';
 import { signInWithEmailAndPassword, signOut } from 'firebase/auth';
 import { auth } from '../firebase/rtdb';
-import { Product, ProductCategory, Inquiry, Testimonial, PortfolioItem } from '../types';
+import { Product, ProductCategory, Inquiry, Testimonial, PortfolioItem, ProductReview } from '../types';
 import {
   rtdbProductsRef,
   rtdbInquiriesRef,
   rtdbOrdersRef,
   rtdbTestimonialsRef,
   rtdbPortfolioRef,
+  rtdbReviewsRef,
   snapToProducts,
   snapToOrders,
   snapToTestimonials,
   snapToPortfolio,
+  snapToReviews,
   saveProductRTDB,
   deleteProductRTDB,
   updateOrderRTDB,
@@ -23,12 +25,15 @@ import {
   deleteTestimonialRTDB,
   savePortfolioRTDB,
   deletePortfolioRTDB,
+  updateReviewRTDB,
+  deleteReviewRTDB,
   onValue,
 } from '../firebase/rtdb';
 import {
   Plus, Trash2, Pencil, X, Check, Database, ShoppingBag, MessagesSquare,
-  Settings2, Package, LayoutDashboard, Star, Briefcase, ArrowRight, LogOut,
+  Settings2, Package, LayoutDashboard, Star, ArrowRight, LogOut,
 } from 'lucide-react';
+import { Stars } from './Stars';
 import { Order } from '../types';
 
 const ADMIN_EMAIL = 'mdswampodsarkar@gmail.com';
@@ -61,7 +66,7 @@ const emptyProduct = (): Product => ({
 
 const inputCls = "w-full px-4 py-2.5 rounded-xl bg-white border border-stone-200 text-sm text-stone-900 placeholder-stone-400 outline-none focus:border-stone-900 focus:ring-2 focus:ring-stone-900/10 shadow-sm";
 
-type Tab = 'dashboard' | 'products' | 'orders' | 'inbox' | 'content' | 'settings';
+type Tab = 'dashboard' | 'products' | 'orders' | 'inbox' | 'reviews' | 'content' | 'settings';
 
 export const RtdbAdminPanel: React.FC = () => {
   const { user, showToast, siteSettings, setActiveTab } = useApp();
@@ -73,6 +78,7 @@ export const RtdbAdminPanel: React.FC = () => {
   const [orders, setOrders] = useState<Order[]>([]);
   const [testimonials, setTestimonials] = useState<Testimonial[]>([]);
   const [portfolio, setPortfolio] = useState<PortfolioItem[]>([]);
+  const [allReviews, setAllReviews] = useState<ProductReview[]>([]);
   const [editing, setEditing] = useState<Product | null>(null);
   const [featText, setFeatText] = useState('');
   const [waNumber, setWaNumber] = useState('');
@@ -99,6 +105,7 @@ export const RtdbAdminPanel: React.FC = () => {
       onValue(rtdbOrdersRef(), (s) => setOrders(snapToOrders(s.val())), () => {}),
       onValue(rtdbTestimonialsRef(), (s) => setTestimonials(snapToTestimonials(s.val())), () => {}),
       onValue(rtdbPortfolioRef(), (s) => setPortfolio(snapToPortfolio(s.val())), () => {}),
+      onValue(rtdbReviewsRef(), (s) => setAllReviews(snapToReviews(s.val())), () => {}),
     ];
     return () => offs.forEach((o) => o());
   }, [isAllowed]);
@@ -123,6 +130,7 @@ export const RtdbAdminPanel: React.FC = () => {
     { id: 'products', label: 'Products', icon: ShoppingBag },
     { id: 'orders', label: 'Orders', icon: Package, badge: orders.length },
     { id: 'inbox', label: 'Inbox', icon: MessagesSquare, badge: inquiries.length },
+    { id: 'reviews', label: 'Reviews', icon: Star, badge: allReviews.filter((r) => r.status === 'pending').length },
     { id: 'content', label: 'Content', icon: Star },
     { id: 'settings', label: 'Settings', icon: Settings2 },
   ];
@@ -282,6 +290,46 @@ export const RtdbAdminPanel: React.FC = () => {
                     <button onClick={async () => { if (confirm('Delete this order?')) await deleteOrderRTDB(o.id); }} className="p-2 rounded-lg text-stone-300 hover:text-rose-600 hover:bg-rose-50" title="Delete"><Trash2 className="w-4 h-4" /></button>
                   </div>
                 </div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* REVIEWS MODERATION */}
+        {tab === 'reviews' && (
+          <div className="space-y-3">
+            {allReviews.filter((r) => r.status === 'pending').length > 0 && (
+              <>
+                <p className="text-xs font-bold uppercase tracking-wider text-amber-600">Waiting approval ({allReviews.filter((r) => r.status === 'pending').length})</p>
+                {allReviews.filter((r) => r.status === 'pending').map((r) => (
+                  <div key={r.id} className="rounded-2xl bg-amber-50/60 border border-amber-200 p-5 shadow-sm">
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="flex-1">
+                        <p className="font-bold text-stone-900 text-sm">{r.name} <span className="font-normal text-stone-400">• on {r.productName}</span></p>
+                        <span className="inline-block my-1.5"><Stars value={r.rating} size="w-3.5 h-3.5" /></span>
+                        <p className="text-sm text-stone-600">{r.text}</p>
+                      </div>
+                      <div className="flex gap-1.5 shrink-0">
+                        <button onClick={async () => { await updateReviewRTDB(r.id, { status: 'approved' }); showToast('Review published', 'success'); }} className="flex items-center gap-1 px-3.5 py-2 rounded-xl bg-emerald-600 text-white text-xs font-bold hover:bg-emerald-500" title="Approve & publish">
+                          <Check className="w-3.5 h-3.5" /> Approve
+                        </button>
+                        <button onClick={async () => { if (confirm('Delete this review?')) await deleteReviewRTDB(r.id); }} className="p-2 rounded-xl text-stone-400 hover:text-rose-600 hover:bg-rose-50" title="Delete"><Trash2 className="w-4 h-4" /></button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </>
+            )}
+            <p className="text-xs font-bold uppercase tracking-wider text-stone-400 pt-2">Published ({allReviews.filter((r) => r.status === 'approved').length})</p>
+            {allReviews.filter((r) => r.status === 'approved').length === 0 && <EmptyBox text="No published reviews yet." />}
+            {allReviews.filter((r) => r.status === 'approved').map((r) => (
+              <div key={r.id} className="rounded-2xl bg-white border border-stone-200 p-5 shadow-sm flex items-start justify-between gap-3">
+                <div>
+                  <p className="font-bold text-stone-900 text-sm">{r.name} <span className="font-normal text-stone-400">• on {r.productName}</span></p>
+                  <span className="inline-block my-1"><Stars value={r.rating} size="w-3 h-3" /></span>
+                  <p className="text-sm text-stone-600">{r.text}</p>
+                </div>
+                <button onClick={async () => { if (confirm('Remove this review from site?')) await deleteReviewRTDB(r.id); }} className="p-2 rounded-lg text-stone-300 hover:text-rose-600 hover:bg-rose-50 shrink-0" title="Remove"><Trash2 className="w-4 h-4" /></button>
               </div>
             ))}
           </div>

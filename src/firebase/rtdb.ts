@@ -11,7 +11,7 @@ import {
   remove,
   update,
 } from 'firebase/database';
-import type { Product, Inquiry, Order, SiteSettings, Testimonial, PortfolioItem } from '../types';
+import type { Product, Inquiry, Order, SiteSettings, Testimonial, PortfolioItem, ProductReview } from '../types';
 
 // Single Firebase project — chat-2-me-c3213 (Realtime Database + Auth).
 // Old Firestore project is fully removed.
@@ -42,6 +42,7 @@ export const rtdbOrdersRef = () => ref(rtdb, 'orders');
 export const rtdbOrderRef = (id: string) => ref(rtdb, `orders/${id}`);
 export const rtdbTestimonialsRef = () => ref(rtdb, 'testimonials');
 export const rtdbPortfolioRef = () => ref(rtdb, 'portfolio');
+export const rtdbReviewsRef = () => ref(rtdb, 'reviews');
 
 // ---- Converters ----
 export const snapToProducts = (val: unknown): Product[] => {
@@ -71,6 +72,17 @@ export const snapToPortfolio = (val: unknown): PortfolioItem[] => {
   if (!val || typeof val !== 'object') return [];
   return Object.entries(val as Record<string, PortfolioItem>).map(([id, p]) => ({ ...p, id }));
 };
+
+export const snapToReviews = (val: unknown): ProductReview[] => {
+  if (!val || typeof val !== 'object') return [];
+  const list = Object.entries(val as Record<string, ProductReview>).map(([id, r]) => ({ ...r, id }));
+  return list.sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || ''));
+};
+
+export const pushReviewRTDB = (review: ProductReview) => push(rtdbReviewsRef(), review);
+export const updateReviewRTDB = (id: string, updates: Partial<ProductReview>) =>
+  update(ref(rtdb, `reviews/${id}`), updates);
+export const deleteReviewRTDB = (id: string) => remove(ref(rtdb, `reviews/${id}`));
 
 // ---- Products ----
 export const saveProductRTDB = (product: Product) =>

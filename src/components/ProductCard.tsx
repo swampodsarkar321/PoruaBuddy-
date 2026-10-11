@@ -3,6 +3,7 @@ import { Product } from '../types';
 import { useApp } from '../context/AppContext';
 import { ArrowUpRight } from 'lucide-react';
 import { WhatsAppIcon } from './icons';
+import { Stars, avgRating } from './Stars';
 import { waLink, singleOrderMessage } from '../utils/whatsapp';
 
 const ACCENT: Record<string, string> = {
@@ -14,10 +15,11 @@ const ACCENT: Record<string, string> = {
 };
 
 export const ProductCard: React.FC<{ product: Product }> = ({ product }) => {
-  const { addToCart, setSelectedProduct, siteSettings } = useApp();
+  const { addToCart, setSelectedProduct, siteSettings, reviews } = useApp();
   const price = product.discountPriceBDT || product.priceBDT;
   const accent = ACCENT[product.category] || 'bg-stone-100 text-stone-500 border-stone-200';
   const initial = product.name.charAt(0).toUpperCase();
+  const { avg, count } = avgRating(reviews.filter((r) => r.productId === product.id && r.status === 'approved').map((r) => r.rating));
 
   return (
     <div className="group flex flex-col rounded-3xl bg-white border border-stone-200 p-6 hover:shadow-[0_24px_60px_-24px_rgba(28,25,23,0.25)] hover:-translate-y-1 hover:border-stone-300 transition-all duration-300">
@@ -29,9 +31,16 @@ export const ProductCard: React.FC<{ product: Product }> = ({ product }) => {
           {product.categoryLabel}
         </span>
       </div>
-      <h3 onClick={() => setSelectedProduct(product)} className="font-semibold text-stone-900 cursor-pointer leading-snug mb-1.5 group-hover:underline underline-offset-4">
+      <h3 onClick={() => setSelectedProduct(product)} className="font-semibold text-stone-900 cursor-pointer leading-snug mb-1 group-hover:underline underline-offset-4">
         {product.name}
       </h3>
+      {count > 0 ? (
+        <span className="flex items-center gap-1.5 mb-2 text-xs font-semibold text-stone-600">
+          <Stars value={avg} size="w-3 h-3" /> {avg.toFixed(1)} <span className="font-normal text-stone-400">({count})</span>
+        </span>
+      ) : (
+        <span className="block text-[11px] text-stone-400 mb-2">No reviews yet</span>
+      )}
       <p className="text-sm text-stone-500 line-clamp-2 mb-5 leading-relaxed">{product.description}</p>
       <div className="mt-auto flex items-center justify-between pt-5 border-t border-stone-100">
         <div>

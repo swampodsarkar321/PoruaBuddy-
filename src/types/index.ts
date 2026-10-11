@@ -129,3 +129,14 @@ export interface PortfolioItem {
   stat: string;
   createdAt: string;
 }
+
+export interface ProductReview {
+  id: string;
+  productId: string;
+  productName: string;
+  name: string;
+  rating: number;
+  text: string;
+  status: 'pending' | 'approved';
+  createdAt: string;
+}
