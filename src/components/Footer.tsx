@@ -6,7 +6,7 @@ import { waLink } from '../utils/whatsapp';
 import { WhatsAppIcon, FacebookIcon, MessengerIcon } from './icons';
 
 export const Footer: React.FC = () => {
-  const { setActiveTab, siteSettings } = useApp();
+  const { setActiveTab, siteSettings, t } = useApp();
   const wa = `https://wa.me/${siteSettings.whatsappNumber.replace(/[^0-9]/g, '')}`;
   return (
     <footer className="bg-white border-t border-stone-200">
@@ -19,7 +19,7 @@ export const Footer: React.FC = () => {
               <span className="block text-[11px] font-medium text-stone-400 tracking-wide">Digital Agency • Websites • Stores • AI Bots</span>
             </span>
           </div>
-          <p className="text-sm text-stone-500 max-w-xs mb-5">Websites, stores & AI chatbots for Bangladeshi brands. Order easily on WhatsApp.</p>
+          <p className="text-sm text-stone-500 max-w-xs mb-5">{t('foot.tag')}</p>
           <div className="flex items-center gap-2">
             <a href={wa} target="_blank" rel="noopener noreferrer" title="WhatsApp"
               className="w-9 h-9 rounded-full bg-stone-100 hover:bg-[#25d366] hover:text-white text-stone-500 flex items-center justify-center transition">
@@ -39,7 +39,7 @@ export const Footer: React.FC = () => {
           </div>
         </div>
         <div className="text-sm">
-          <p className="font-semibold text-stone-900 mb-3">Studio</p>
+          <p className="font-semibold text-stone-900 mb-3">{t('foot.studio')}</p>
           <div className="space-y-2.5 text-stone-500">
             <button onClick={() => setActiveTab('custom-dev')} className="block hover:text-stone-900">Services</button>
             <button onClick={() => setActiveTab('portfolio')} className="block hover:text-stone-900">Work</button>
@@ -48,10 +48,11 @@ export const Footer: React.FC = () => {
           </div>
         </div>
         <div className="text-sm">
-          <p className="font-semibold text-stone-900 mb-3">Support</p>
+          <p className="font-semibold text-stone-900 mb-3">{t('foot.support')}</p>
           <div className="space-y-2.5 text-stone-500">
             <button onClick={() => setActiveTab('chatbot')} className="block hover:text-stone-900">AI Chatbot</button>
             <button onClick={() => setActiveTab('blog')} className="block hover:text-stone-900">Blog</button>
+            <button onClick={() => setActiveTab('track')} className="block hover:text-stone-900">Track order</button>
             <button onClick={() => setActiveTab('contact')} className="block hover:text-stone-900">Contact</button>
             <button onClick={() => setActiveTab('rtdb-admin')} className="block text-stone-300 hover:text-stone-900 text-xs">DB Admin</button>
           </div>

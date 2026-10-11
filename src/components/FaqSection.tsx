@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { ChevronDown } from 'lucide-react';
 import { Reveal } from './Reveal';
+import { useApp } from '../context/AppContext';
 
 export const FAQS = [
   {
@@ -30,14 +31,15 @@ export const FAQS = [
 ];
 
 export const FaqSection: React.FC = () => {
+  const { t } = useApp();
   const [open, setOpen] = useState<number | null>(0);
   return (
     <section className="bg-transparent">
       <div className="max-w-3xl mx-auto px-5 py-20">
         <Reveal>
           <div className="text-center mb-8">
-            <p className="text-xs font-bold uppercase tracking-[0.2em] text-emerald-700 mb-3">FAQ</p>
-            <h2 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-stone-900">Questions buyers ask us</h2>
+            <p className="text-xs font-bold uppercase tracking-[0.2em] text-emerald-700 mb-3">{t('sec.faq.k')}</p>
+            <h2 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-stone-900">{t('sec.faq.t')}</h2>
           </div>
         </Reveal>
         <div className="space-y-2.5">

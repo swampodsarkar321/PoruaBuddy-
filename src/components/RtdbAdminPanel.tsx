@@ -31,7 +31,7 @@ import {
 } from '../firebase/rtdb';
 import {
   Plus, Trash2, Pencil, X, Check, Database, ShoppingBag, MessagesSquare,
-  Settings2, Package, LayoutDashboard, Star, ArrowRight, LogOut,
+  Settings2, Package, LayoutDashboard, Star, ArrowRight, LogOut, Users, Upload,
 } from 'lucide-react';
 import { Stars } from './Stars';
 import { Order } from '../types';
@@ -66,7 +66,13 @@ const emptyProduct = (): Product => ({
 
 const inputCls = "w-full px-4 py-2.5 rounded-xl bg-white border border-stone-200 text-sm text-stone-900 placeholder-stone-400 outline-none focus:border-stone-900 focus:ring-2 focus:ring-stone-900/10 shadow-sm";
 
-type Tab = 'dashboard' | 'products' | 'orders' | 'inbox' | 'reviews' | 'content' | 'settings';
+type Tab = 'dashboard' | 'products' | 'orders' | 'inbox' | 'reviews' | 'content' | 'customers' | 'settings';
+
+const REPLY_TEMPLATES = [
+  { label: 'Price list', text: 'Hello! Thanks for messaging Sairah Labs 🙏\n\nOur prices:\n• Business website — from ৳3,500\n• Online store — from ৳5,500\n• AI chatbot — ৳800/month\n\nWhich one do you need? I will share a free quote.' },
+  { label: 'Delivery info', text: 'Hello! Delivery time:\n• Business website — 4 days\n• Online store — 7 days\n• Chatbot setup — 2 days\n\n Preview in 48 hours, source code included ✅' },
+  { label: 'Payment', text: 'Hello! Order confirm korle payment details ekhane dibo. Apnar nam + address ta pathan, order ready kore dicchi ✅' },
+];
 
 export const RtdbAdminPanel: React.FC = () => {
   const { user, showToast, siteSettings, setActiveTab } = useApp();
@@ -83,6 +89,9 @@ export const RtdbAdminPanel: React.FC = () => {
   const [featText, setFeatText] = useState('');
   const [waNumber, setWaNumber] = useState('');
   const [heroNotice, setHeroNotice] = useState('');
+  const [bulkOpen, setBulkOpen] = useState(false);
+  const [bulkText, setBulkText] = useState('');
+  const [bulkBusy, setBulkBusy] = useState(false);
   const [contentMode, setContentMode] = useState<'reviews' | 'work'>('reviews');
   const [tName, setTName] = useState('');
   const [tRole, setTRole] = useState('');
@@ -118,6 +127,45 @@ export const RtdbAdminPanel: React.FC = () => {
   if (!isAllowed) return <AdminLogin />;
 
   const revenue = orders.filter((o) => ['Paid', 'Completed'].includes(o.paymentStatus)).reduce((s, o) => s + (o.totalAmountBDT || 0), 0);
+
+  // Last 7 days order chart data
+  const last7 = Array.from({ length: 7 }, (_, i) => {
+    const d = new Date();
+    d.setDate(d.getDate() - (6 - i));
+    const key = d.toISOString().slice(0, 10);
+    const dayOrders = orders.filter((o) => (o.createdAt || '').slice(0, 10) === key);
+    return { label: d.toLocaleDateString('en-GB', { weekday: 'short' }), count: dayOrders.length, revenue: dayOrders.reduce((s, o) => s + (o.totalAmountBDT || 0), 0) };
+  });
+  const maxCount = Math.max(1, ...last7.map((d) => d.count));
+
+  // Top products by ordered quantity
+  const topProducts = (() => {
+    const map = new Map<string, { name: string; qty: number; revenue: number }>();
+    orders.forEach((o) => (o.items || []).forEach((it) => {
+      const cur = map.get(it.productName) || { name: it.productName, qty: 0, revenue: 0 };
+      cur.qty += it.quantity || 1;
+      cur.revenue += (it.priceBDT || 0) * (it.quantity || 1);
+      map.set(it.productName, cur);
+    }));
+    return [...map.values()].sort((a, b) => b.qty - a.qty).slice(0, 5);
+  })();
+
+  // Browser alerts for new inbox/orders while panel is open
+  const prevCounts = React.useRef({ inbox: -1, orders: -1 });
+  useEffect(() => {
+    if (!isAllowed || typeof Notification === 'undefined') return;
+    if (Notification.permission === 'default') Notification.requestPermission().catch(() => {});
+    const { inbox, orders: oc } = { inbox: inquiries.length, orders: orders.length };
+    if (prevCounts.current.inbox >= 0 && inbox > prevCounts.current.inbox && Notification.permission === 'granted') {
+      new Notification('Sairah Labs — new message', { body: 'A customer just sent a message. Check Inbox.' });
+      showToast('New inbox message!', 'info');
+    }
+    if (prevCounts.current.orders >= 0 && oc > prevCounts.current.orders && Notification.permission === 'granted') {
+      new Notification('Sairah Labs — new order', { body: 'A new order just came in. Check Orders.' });
+      showToast('New order received!', 'success');
+    }
+    prevCounts.current = { inbox, orders: oc };
+  }, [inquiries.length, orders.length, isAllowed]);
   const stats = [
     { label: 'Products live', value: items.filter((p) => p.isPublished).length, sub: `${items.length} total`, icon: ShoppingBag },
     { label: 'Orders', value: orders.length, sub: `৳${revenue.toLocaleString()} collected`, icon: Package },
@@ -130,6 +178,7 @@ export const RtdbAdminPanel: React.FC = () => {
     { id: 'products', label: 'Products', icon: ShoppingBag },
     { id: 'orders', label: 'Orders', icon: Package, badge: orders.length },
     { id: 'inbox', label: 'Inbox', icon: MessagesSquare, badge: inquiries.length },
+    { id: 'customers', label: 'Customers', icon: Users },
     { id: 'reviews', label: 'Reviews', icon: Star, badge: allReviews.filter((r) => r.status === 'pending').length },
     { id: 'content', label: 'Content', icon: Star },
     { id: 'settings', label: 'Settings', icon: Settings2 },
@@ -206,6 +255,44 @@ export const RtdbAdminPanel: React.FC = () => {
             </div>
             <div className="grid md:grid-cols-2 gap-4">
               <div className="rounded-3xl bg-white border border-stone-200 p-6 shadow-sm">
+                <h4 className="font-bold text-stone-900 text-sm mb-1">Orders — last 7 days</h4>
+                <p className="text-[11px] text-stone-400 mb-4">Bars = orders, hover title shows revenue</p>
+                <div className="flex items-end gap-2 h-32">
+                  {last7.map((d) => (
+                    <div key={d.label} className="flex-1 flex flex-col items-center gap-1.5" title={`${d.count} orders • ৳${d.revenue.toLocaleString()}`}>
+                      <span className="text-[11px] font-bold text-stone-700">{d.count > 0 ? d.count : ''}</span>
+                      <div className="w-full rounded-lg bg-stone-100 relative overflow-hidden" style={{ height: '100%' }}>
+                        <div className="absolute bottom-0 w-full rounded-lg bg-gradient-to-t from-emerald-600 to-emerald-400 transition-all" style={{ height: `${Math.max(d.count > 0 ? 12 : 4, (d.count / maxCount) * 100)}%` }} />
+                      </div>
+                      <span className="text-[10px] text-stone-400 font-medium">{d.label}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              <div className="rounded-3xl bg-white border border-stone-200 p-6 shadow-sm">
+                <h4 className="font-bold text-stone-900 text-sm mb-4">Top selling products</h4>
+                {topProducts.length === 0 ? (
+                  <p className="text-sm text-stone-400">No sales data yet.</p>
+                ) : (
+                  <div className="space-y-3">
+                    {topProducts.map((p, i) => (
+                      <div key={p.name} className="flex items-center gap-3">
+                        <span className="w-6 h-6 rounded-full bg-stone-900 text-white text-[11px] font-bold flex items-center justify-center shrink-0">{i + 1}</span>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-[13px] font-bold text-stone-900 truncate">{p.name}</p>
+                          <div className="h-1.5 rounded-full bg-stone-100 mt-1 overflow-hidden">
+                            <div className="h-full rounded-full bg-emerald-500" style={{ width: `${(p.qty / Math.max(1, topProducts[0].qty)) * 100}%` }} />
+                          </div>
+                        </div>
+                        <span className="text-xs font-bold text-stone-700 whitespace-nowrap">{p.qty} sold</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+            <div className="grid md:grid-cols-2 gap-4">
+              <div className="rounded-3xl bg-white border border-stone-200 p-6 shadow-sm">
                 <h4 className="font-bold text-stone-900 text-sm mb-4">Quick actions</h4>
                 <div className="grid grid-cols-2 gap-2.5">
                   {[
@@ -242,9 +329,53 @@ export const RtdbAdminPanel: React.FC = () => {
         {/* PRODUCTS */}
         {tab === 'products' && (
           <>
-            <button onClick={startNew} className="flex items-center gap-1.5 px-5 py-2.5 rounded-full bg-stone-900 text-white text-sm font-bold hover:bg-stone-700 mb-5 shadow">
-              <Plus className="w-4 h-4" /> Add product
-            </button>
+            <div className="flex flex-wrap gap-2 mb-5">
+              <button onClick={startNew} className="flex items-center gap-1.5 px-5 py-2.5 rounded-full bg-stone-900 text-white text-sm font-bold hover:bg-stone-700 shadow">
+                <Plus className="w-4 h-4" /> Add product
+              </button>
+              <button onClick={() => setBulkOpen(!bulkOpen)} className="flex items-center gap-1.5 px-5 py-2.5 rounded-full bg-white border border-stone-200 text-sm font-bold text-stone-700 hover:border-stone-900 transition">
+                <Upload className="w-4 h-4" /> Bulk upload
+              </button>
+            </div>
+            {bulkOpen && (
+              <div className="rounded-3xl bg-white border border-stone-200 p-5 mb-5 shadow-sm">
+                <p className="text-xs font-bold text-stone-500 mb-1.5">One product per line: <span className="font-mono font-normal">name | price | category | description</span></p>
+                <p className="text-[11px] text-stone-400 mb-2.5">Category: websites, pc-optimization, gaming-tools, windows-panels, gaming-services</p>
+                <textarea value={bulkText} onChange={(e) => setBulkText(e.target.value)} rows={5}
+                  placeholder={'Business Website | 3500 | websites | 8-page company site\nGaming Top-up Store | 4500 | gaming-tools | Player-ID checkout store'}
+                  className={`${inputCls} resize-none font-mono !text-[13px]`} />
+                <button disabled={bulkBusy} onClick={async () => {
+                  const lines = bulkText.split('\n').map((l) => l.trim()).filter(Boolean);
+                  if (lines.length === 0) { showToast('Paste at least one line', 'error'); return; }
+                  setBulkBusy(true);
+                  let done = 0;
+                  for (const line of lines) {
+                    const [name, price, cat, ...desc] = line.split('|').map((s) => s.trim());
+                    if (!name) continue;
+                    const category = (CATS.some((c) => c.id === cat) ? cat : 'websites') as Product['category'];
+                    const base = emptyProduct();
+                    try {
+                      await saveProductRTDB({
+                        ...base,
+                        name,
+                        slug: name.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
+                        category,
+                        categoryLabel: CATS.find((c) => c.id === category)?.label || category,
+                        description: desc.join(' | '),
+                        priceBDT: Number(price) || 0,
+                      });
+                      done++;
+                    } catch {}
+                  }
+                  setBulkBusy(false);
+                  setBulkText('');
+                  setBulkOpen(false);
+                  showToast(`${done} products added!`, 'success');
+                }} className="mt-3 px-6 py-2.5 rounded-xl bg-stone-900 text-white text-sm font-bold hover:bg-stone-700 disabled:opacity-50">
+                  {bulkBusy ? 'Uploading...' : 'Upload all'}
+                </button>
+              </div>
+            )}
             {items.length === 0 ? (
               <EmptyBox text="No products yet — add your first one. Shop section stays hidden on site until then." />
             ) : (
@@ -347,15 +478,28 @@ export const RtdbAdminPanel: React.FC = () => {
                     <p className="text-xs text-emerald-700 font-semibold mt-0.5">{q.serviceType}</p>
                     <p className="text-sm text-stone-600 mt-2 leading-relaxed">{q.message}</p>
                     <p className="text-[11px] text-stone-400 mt-1.5">{new Date(q.createdAt).toLocaleString()}</p>
-                    <a href={`https://wa.me/${q.phone.replace(/[^0-9]/g, '')}`} target="_blank" rel="noopener noreferrer" className="inline-block mt-2.5 px-4 py-2 rounded-full bg-[#25d366] text-white text-xs font-bold hover:bg-[#1eb85a]">
-                      Reply on WhatsApp
-                    </a>
+                    <div className="flex flex-wrap items-center gap-2 mt-2.5">
+                      <a href={`https://wa.me/${q.phone.replace(/[^0-9]/g, '')}`} target="_blank" rel="noopener noreferrer" className="inline-block px-4 py-2 rounded-full bg-[#25d366] text-white text-xs font-bold hover:bg-[#1eb85a]">
+                        Reply on WhatsApp
+                      </a>
+                      {REPLY_TEMPLATES.map((tpl) => (
+                        <a key={tpl.label} href={`https://wa.me/${q.phone.replace(/[^0-9]/g, '')}?text=${encodeURIComponent(`Hello ${q.name}! ` + tpl.text)}`} target="_blank" rel="noopener noreferrer"
+                          className="px-3 py-2 rounded-full bg-stone-100 border border-stone-200 text-[11px] font-semibold text-stone-600 hover:border-stone-900 hover:text-stone-900 transition">
+                          {tpl.label} template
+                        </a>
+                      ))}
+                    </div>
                   </div>
                   <button onClick={async () => { await deleteInquiryRTDB(q.id); }} className="p-2 rounded-lg text-stone-300 hover:text-rose-600 hover:bg-rose-50 shrink-0" title="Delete"><Trash2 className="w-4 h-4" /></button>
                 </div>
               </div>
             ))}
           </div>
+        )}
+
+        {/* CUSTOMERS */}
+        {tab === 'customers' && (
+          <CustomerList orders={orders} inquiries={inquiries} />
         )}
 
         {/* CONTENT */}
@@ -438,29 +582,10 @@ export const RtdbAdminPanel: React.FC = () => {
 
         {/* SETTINGS */}
         {tab === 'settings' && (
-          <div className="max-w-xl rounded-3xl bg-white border border-stone-200 p-6 sm:p-8 space-y-4 shadow-sm">
-            <div>
-              <label className="text-xs font-bold text-stone-500 uppercase tracking-wider block mb-1.5">WhatsApp number (site-wide)</label>
-              <input value={waNumber} onChange={(e) => setWaNumber(e.target.value)} placeholder="01767882562" className={inputCls} />
-            </div>
-            <div>
-              <label className="text-xs font-bold text-stone-500 uppercase tracking-wider block mb-1.5">Announcement bar text</label>
-              <input value={heroNotice} onChange={(e) => setHeroNotice(e.target.value)} placeholder="Offer text..." className={inputCls} />
-            </div>
-            <button
-              onClick={async () => {
-                try {
-                  await saveSettingsRTDB({ whatsappNumber: waNumber, heroNotice } as Partial<import('../types').SiteSettings>);
-                  showToast('Settings saved — live instantly', 'success');
-                } catch {
-                  showToast('Save failed — check RTDB rules', 'error');
-                }
-              }}
-              className="flex items-center gap-1.5 px-6 py-3 rounded-xl bg-stone-900 text-white text-sm font-bold hover:bg-stone-700"
-            >
-              <Check className="w-4 h-4" /> Save settings
-            </button>
-          </div>
+          <SettingsForm
+            waNumber={waNumber} setWaNumber={setWaNumber}
+            heroNotice={heroNotice} setHeroNotice={setHeroNotice}
+          />
         )}
 
         {/* PRODUCT MODAL */}
@@ -473,6 +598,7 @@ export const RtdbAdminPanel: React.FC = () => {
               </div>
               <input value={editing.name} onChange={(e) => setEditing({ ...editing, name: e.target.value })} placeholder="Product name *" className={inputCls} />
               <textarea value={editing.description} onChange={(e) => setEditing({ ...editing, description: e.target.value })} rows={3} placeholder="Short description" className={`${inputCls} resize-none`} />
+              <input value={(editing.imageUrls || []).join(', ')} onChange={(e) => setEditing({ ...editing, imageUrls: e.target.value.split(',').map((s) => s.trim()).filter(Boolean) })} placeholder="Image URL (optional, https://...)" className={inputCls} />
               <div className="grid sm:grid-cols-2 gap-4">
                 <select value={editing.category} onChange={(e) => setEditing({ ...editing, category: e.target.value as Product['category'] })} className={inputCls}>
                   {CATS.map((c) => <option key={c.id} value={c.id}>{c.label}</option>)}
@@ -506,6 +632,111 @@ export const RtdbAdminPanel: React.FC = () => {
 const EmptyBox: React.FC<{ text: string }> = ({ text }) => (
   <div className="py-16 px-6 text-center rounded-3xl bg-white border border-dashed border-stone-300 text-sm text-stone-400">{text}</div>
 );
+
+const CustomerList: React.FC<{ orders: Order[]; inquiries: Inquiry[] }> = ({ orders, inquiries }) => {
+  const map = new Map<string, { name: string; phone: string; orders: number; spent: number; last: string }>();
+  const touch = (name: string, phone: string, spent = 0, date = '') => {
+    const key = phone.replace(/[^0-9]/g, '') || name.toLowerCase();
+    if (!key) return;
+    const cur = map.get(key) || { name, phone, orders: 0, spent: 0, last: '' };
+    if (name) cur.name = name;
+    if (phone) cur.phone = phone;
+    if (spent > 0) { cur.orders += 1; cur.spent += spent; }
+    if (date && date > cur.last) cur.last = date;
+    map.set(key, cur);
+  };
+  orders.forEach((o) => touch(o.customerName || '', o.customerPhone || '', o.totalAmountBDT || 0, o.createdAt || ''));
+  inquiries.forEach((q) => touch(q.name || '', q.phone || '', 0, q.createdAt || ''));
+  const list = [...map.values()].sort((a, b) => b.spent - a.spent);
+
+  if (list.length === 0) return <EmptyBox text="No customers yet — they appear automatically from orders + inbox." />;
+  return (
+    <div className="grid sm:grid-cols-2 gap-3">
+      {list.map((c) => (
+        <div key={c.phone + c.name} className="rounded-2xl bg-white border border-stone-200 p-5 shadow-sm flex items-center gap-3">
+          <span className="w-11 h-11 rounded-2xl bg-stone-900 text-white flex items-center justify-center font-extrabold shrink-0">
+            {(c.name || '?').charAt(0).toUpperCase()}
+          </span>
+          <div className="flex-1 min-w-0">
+            <p className="font-bold text-stone-900 text-sm truncate">{c.name || 'Unknown'}</p>
+            <p className="text-xs text-stone-400 font-mono">{c.phone || '—'}</p>
+            <p className="text-[11px] text-stone-500 mt-0.5">{c.orders} orders • ৳{c.spent.toLocaleString()} spent</p>
+          </div>
+          {c.phone && (
+            <a href={`https://wa.me/${c.phone.replace(/[^0-9]/g, '')}?text=${encodeURIComponent(`Hello ${c.name}! Sairah Labs theke bolchi — apnar jonno ekta special offer ache 🎉`)}`} target="_blank" rel="noopener noreferrer"
+              className="px-3.5 py-2 rounded-full bg-[#25d366] text-white text-[11px] font-bold hover:bg-[#1eb85a] shrink-0">
+              Send offer
+            </a>
+          )}
+        </div>
+      ))}
+    </div>
+  );
+};
+
+const SettingsForm: React.FC<{
+  waNumber: string; setWaNumber: (v: string) => void;
+  heroNotice: string; setHeroNotice: (v: string) => void;
+}> = ({ waNumber, setWaNumber, heroNotice, setHeroNotice }) => {
+  const { showToast } = useApp();
+  const [offerText, setOfferText] = useState('');
+  const [offerEndsAt, setOfferEndsAt] = useState('');
+  const [couponCode, setCouponCode] = useState('');
+  const { siteSettings } = useApp();
+
+  useEffect(() => {
+    setOfferText(siteSettings.offerText || '');
+    setOfferEndsAt(siteSettings.offerEndsAt ? siteSettings.offerEndsAt.slice(0, 16) : '');
+    setCouponCode(siteSettings.couponCode || '');
+  }, [siteSettings]);
+
+  return (
+    <div className="max-w-xl rounded-3xl bg-white border border-stone-200 p-6 sm:p-8 space-y-4 shadow-sm">
+      <div>
+        <label className="text-xs font-bold text-stone-500 uppercase tracking-wider block mb-1.5">WhatsApp number (site-wide)</label>
+        <input value={waNumber} onChange={(e) => setWaNumber(e.target.value)} placeholder="01767882562" className={inputCls} />
+      </div>
+      <div>
+        <label className="text-xs font-bold text-stone-500 uppercase tracking-wider block mb-1.5">Announcement bar text</label>
+        <input value={heroNotice} onChange={(e) => setHeroNotice(e.target.value)} placeholder="Offer text..." className={inputCls} />
+      </div>
+      <div className="pt-3 border-t border-stone-100 space-y-4">
+        <p className="text-xs font-bold text-stone-900 uppercase tracking-wider">Offer banner + countdown</p>
+        <div>
+          <label className="text-xs font-bold text-stone-500 uppercase tracking-wider block mb-1.5">Offer text (empty = hidden)</label>
+          <input value={offerText} onChange={(e) => setOfferText(e.target.value)} placeholder="Eid offer — 20% off all websites!" className={inputCls} />
+        </div>
+        <div className="grid sm:grid-cols-2 gap-4">
+          <div>
+            <label className="text-xs font-bold text-stone-500 uppercase tracking-wider block mb-1.5">Ends at</label>
+            <input type="datetime-local" value={offerEndsAt} onChange={(e) => setOfferEndsAt(e.target.value)} className={inputCls} />
+          </div>
+          <div>
+            <label className="text-xs font-bold text-stone-500 uppercase tracking-wider block mb-1.5">Coupon code</label>
+            <input value={couponCode} onChange={(e) => setCouponCode(e.target.value)} placeholder="EID20" className={inputCls} />
+          </div>
+        </div>
+      </div>
+      <button
+        onClick={async () => {
+          try {
+            await saveSettingsRTDB({
+              whatsappNumber: waNumber, heroNotice, offerText,
+              offerEndsAt: offerEndsAt ? new Date(offerEndsAt).toISOString() : '',
+              couponCode,
+            } as Partial<import('../types').SiteSettings>);
+            showToast('Settings saved — live instantly', 'success');
+          } catch {
+            showToast('Save failed — check RTDB rules', 'error');
+          }
+        }}
+        className="flex items-center gap-1.5 px-6 py-3 rounded-xl bg-stone-900 text-white text-sm font-bold hover:bg-stone-700"
+      >
+        <Check className="w-4 h-4" /> Save settings
+      </button>
+    </div>
+  );
+};
 
 const AdminLogin: React.FC = () => {
   const { showToast } = useApp();

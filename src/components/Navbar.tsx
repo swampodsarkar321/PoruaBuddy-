@@ -1,20 +1,20 @@
 import React, { useState } from 'react';
 import { useApp } from '../context/AppContext';
-import { ShoppingBag, Menu, X } from 'lucide-react';
+import { ShoppingBag, Menu, X, Package } from 'lucide-react';
 import { Logo } from './Logo';
 import { waLink } from '../utils/whatsapp';
 
 export const Navbar: React.FC = () => {
-  const { activeTab, setActiveTab, cartCount, setIsCartOpen, siteSettings, isAdmin } = useApp();
+  const { activeTab, setActiveTab, cartCount, setIsCartOpen, siteSettings, isAdmin, lang, t, toggleLang } = useApp();
   const [open, setOpen] = useState(false);
   const items = [
-    { id: 'home', label: 'Home' },
-    { id: 'custom-dev', label: 'Services' },
-    { id: 'portfolio', label: 'Work' },
-    { id: 'products', label: 'Shop' },
-    { id: 'chatbot', label: 'AI Chatbot' },
-    { id: 'blog', label: 'Blog' },
-    { id: 'contact', label: 'Contact' },
+    { id: 'home', label: t('nav.home') },
+    { id: 'custom-dev', label: t('nav.services') },
+    { id: 'portfolio', label: t('nav.work') },
+    { id: 'products', label: t('nav.shop') },
+    { id: 'chatbot', label: t('nav.chatbot') },
+    { id: 'blog', label: t('nav.blog') },
+    { id: 'contact', label: t('nav.contact') },
     ...(isAdmin ? [{ id: 'rtdb-admin', label: 'DB Admin' }] : []),
   ];
   const go = (id: string) => { setActiveTab(id); setOpen(false); window.scrollTo({ top: 0 }); };
@@ -39,8 +39,14 @@ export const Navbar: React.FC = () => {
         </nav>
         <div className="flex items-center gap-2">
             <a href={waLink(siteSettings.whatsappNumber, 'Hello Sairah Labs! I need a website. Please share a free quote.')} target="_blank" rel="noopener noreferrer" className="hidden md:flex items-center gap-1.5 px-4 py-2 rounded-full bg-stone-900 text-white text-sm font-semibold hover:bg-stone-700 transition">
-              Get free quote
+              {t('nav.quote')}
             </a>
+          <button onClick={toggleLang} title="বাংলা / English" className="w-9 h-9 rounded-full border border-stone-200 bg-white text-[11px] font-extrabold text-stone-600 hover:border-stone-900 hover:text-stone-900 transition">
+            {lang === 'en' ? 'বাং' : 'EN'}
+          </button>
+          <button onClick={() => go('track')} title="Track order" className="relative w-9 h-9 rounded-full border border-stone-200 bg-white hidden sm:flex items-center justify-center text-stone-500 hover:border-stone-900 hover:text-stone-900 transition">
+            <Package className="w-4 h-4" />
+          </button>
           <button onClick={() => setIsCartOpen(true)} className="relative w-9 h-9 rounded-full border border-stone-200 bg-white flex items-center justify-center text-stone-500 hover:border-stone-900 hover:text-stone-900 transition">
             <ShoppingBag className="w-4 h-4" />
             {cartCount > 0 && <span className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-stone-900 text-white text-[10px] font-bold flex items-center justify-center">{cartCount}</span>}

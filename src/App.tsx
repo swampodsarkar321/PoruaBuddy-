@@ -12,6 +12,7 @@ import { ProcessSection } from './components/ProcessSection';
 import { PricingSection } from './components/PricingSection';
 import { FaqSection } from './components/FaqSection';
 import { BlogSection } from './components/BlogSection';
+import { TrackOrderSection } from './components/TrackOrderSection';
 import { Testimonials } from './components/Testimonials';
 import { ContactSection } from './components/ContactSection';
 import { RtdbAdminPanel } from './components/RtdbAdminPanel';
@@ -22,6 +23,8 @@ import { OrderTrackerModal } from './components/OrderTrackerModal';
 import { PoliciesModal } from './components/PoliciesModal';
 import { DevDocsModal } from './components/DevDocsModal';
 import { SiteProtection } from './components/SiteProtection';
+import { OfferBar } from './components/OfferBar';
+import { ChatWidget } from './components/ChatWidget';
 import { WhatsAppIcon } from './components/icons';
 import { waLink } from './utils/whatsapp';
 
@@ -33,6 +36,7 @@ const MainContent: React.FC = () => {
     toast,
     siteSettings,
     products,
+    t,
   } = useApp();
 
   const hasPublishedProducts = products.some((p) => p.isPublished);
@@ -53,6 +57,7 @@ const MainContent: React.FC = () => {
       )}
 
       {/* Main Navigation */}
+      <OfferBar />
       <Navbar />
 
       {/* Main View Switching */}
@@ -73,8 +78,8 @@ const MainContent: React.FC = () => {
             <div className="border-t border-stone-200/70 bg-transparent">
               <div className="max-w-6xl mx-auto px-5 pt-10 flex items-end justify-between gap-4">
                 <div>
-                  <h2 className="text-2xl font-bold tracking-tight text-stone-900">Ready-made templates & tools</h2>
-                  <p className="text-sm text-stone-500 mt-1">Need something quick? Grab a template instead of custom work.</p>
+                  <h2 className="text-2xl font-bold tracking-tight text-stone-900">{t('sec.shop.t')}</h2>
+                  <p className="text-sm text-stone-500 mt-1">{t('sec.shop.sub')}</p>
                 </div>
                 <button
                   onClick={() => {
@@ -83,7 +88,7 @@ const MainContent: React.FC = () => {
                   }}
                   className="text-sm font-semibold text-emerald-700 underline underline-offset-4 shrink-0 hover:text-emerald-600"
                 >
-                  View all
+                  {t('sec.shop.all')}
                 </button>
               </div>
               <ProductCatalog />
@@ -95,15 +100,15 @@ const MainContent: React.FC = () => {
               <div className="max-w-6xl mx-auto px-5 pb-20">
                 <div className="relative rounded-[2rem] overflow-hidden bg-stone-900 text-white p-10 sm:p-16 text-center">
                   <div className="absolute -top-32 left-1/2 -translate-x-1/2 w-[600px] h-[300px] bg-gradient-to-r from-emerald-500/25 via-teal-500/20 to-cyan-500/20 blur-3xl pointer-events-none" />
-                  <h3 className="relative text-3xl sm:text-4xl font-extrabold tracking-tight mb-3">Have a project in mind?</h3>
-                  <p className="relative text-sm text-stone-400 mb-7">Free quote within a few hours — no commitment.</p>
+                  <h3 className="relative text-3xl sm:text-4xl font-extrabold tracking-tight mb-3">{t('cta.t')}</h3>
+                  <p className="relative text-sm text-stone-400 mb-7">{t('cta.sub')}</p>
                   <a
                     href={waLink(siteSettings.whatsappNumber, 'Hello Sairah Labs! I need a website. Please share a free quote.')}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="relative inline-block px-8 py-3.5 rounded-full bg-white text-stone-900 text-sm font-bold hover:bg-stone-200 transition"
                   >
-                    Get free quote
+                    {t('cta.btn')}
                   </a>
                 </div>
               </div>
@@ -150,6 +155,9 @@ const MainContent: React.FC = () => {
         {/* VIEW: BLOG */}
         {activeTab === 'blog' && <BlogSection />}
 
+        {/* VIEW: TRACK ORDER */}
+        {activeTab === 'track' && <TrackOrderSection />}
+
         {/* VIEW: CONTACT & FAQ */}
         {activeTab === 'contact' && <ContactSection />}
 
@@ -174,6 +182,7 @@ const MainContent: React.FC = () => {
       {/* Slide-overs & Modals */}
       <CartDrawer />
       <ProductDetailModal />
+      <ChatWidget />
       <OrderSuccessModal />
       <OrderTrackerModal />
       <PoliciesModal />

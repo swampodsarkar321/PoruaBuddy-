@@ -4,15 +4,15 @@ import { ArrowUpRight } from 'lucide-react';
 import { Reveal } from './Reveal';
 
 export const PortfolioSection: React.FC = () => {
-  const { portfolio, setActiveTab } = useApp();
+  const { portfolio, setActiveTab, t } = useApp();
   if (portfolio.length === 0) return null;
 
   return (
     <section className="bg-transparent">
       <div className="max-w-6xl mx-auto px-5 py-20">
         <Reveal>
-          <p className="text-xs font-bold uppercase tracking-[0.2em] text-emerald-700 mb-3">Selected work</p>
-          <h2 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-stone-900 mb-10">Results, not just screenshots</h2>
+          <p className="text-xs font-bold uppercase tracking-[0.2em] text-emerald-700 mb-3">{t('sec.work.k')}</p>
+          <h2 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-stone-900 mb-10">{t('sec.work.t')}</h2>
         </Reveal>
         <div className="grid md:grid-cols-3 gap-4">
           {portfolio.map((w, i) => (

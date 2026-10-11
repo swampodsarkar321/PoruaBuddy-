@@ -9,7 +9,7 @@ const LOGOS = ['ClothStore Dhaka', 'GameTop BD', 'Nusrat Boutique', 'TechFix', '
 const MARQUEE = ['Business Websites', 'E-commerce Stores', 'AI Chatbots', 'Top-up Stores', 'Admin Dashboards', 'PC Optimization', 'Landing Pages', 'Messenger Bots'];
 
 export const Hero: React.FC = () => {
-  const { setActiveTab, siteSettings } = useApp();
+  const { setActiveTab, siteSettings, t } = useApp();
   const waQuote = `https://wa.me/${siteSettings.whatsappNumber.replace(/[^0-9]/g, '')}?text=${encodeURIComponent('Hello Sairah Labs! I need a website. Please share a free quote.')}`;
   return (
     <section className="relative overflow-hidden bg-transparent">
@@ -20,19 +20,19 @@ export const Hero: React.FC = () => {
       <div className="relative max-w-6xl mx-auto px-5 pt-20 pb-12 text-center">
         <Reveal>
           <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white border border-stone-200 text-xs font-medium text-stone-600 mb-7 shadow-sm">
-            <Sparkles className="w-3.5 h-3.5 text-emerald-600" /> Accepting new projects
+            <Sparkles className="w-3.5 h-3.5 text-emerald-600" /> {t('hero.badge')}
             <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
           </span>
         </Reveal>
         <Reveal delay={80}>
           <h1 className="text-5xl sm:text-7xl font-extrabold tracking-[-0.045em] text-stone-900 leading-[1.0] mb-6">
-            Websites that turn<br />
-            <span className="bg-gradient-to-r from-emerald-700 to-teal-600 bg-clip-text text-transparent">visitors into sales.</span>
+            {t('hero.titleA')}<br />
+            <span className="bg-gradient-to-r from-emerald-700 to-teal-600 bg-clip-text text-transparent">{t('hero.titleB')}</span>
           </h1>
         </Reveal>
         <Reveal delay={160}>
           <p className="text-stone-500 text-lg max-w-xl mx-auto mb-9 leading-relaxed">
-            We design, build & launch high-converting websites, stores and AI chatbots for Bangladeshi brands — live in 4–7 days.
+            {t('hero.sub')}
           </p>
         </Reveal>
         <Reveal delay={220}>
@@ -40,12 +40,12 @@ export const Hero: React.FC = () => {
             <a href={waQuote} target="_blank" rel="noopener noreferrer"
               className="group px-8 py-4 rounded-full bg-gradient-to-r from-emerald-600 to-teal-600 text-white text-sm font-bold hover:from-emerald-500 hover:to-teal-500 flex items-center justify-center gap-2 transition shadow-[0_16px_40px_-12px_rgba(5,150,105,0.6)]">
               <WhatsAppIcon className="w-4 h-4" />
-              Get my free quote
+              {t('hero.cta1')}
               <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
             </a>
             <button onClick={() => setActiveTab('portfolio')}
               className="px-8 py-4 rounded-full bg-white/80 backdrop-blur border border-stone-200 text-sm font-semibold text-stone-700 hover:border-stone-900 hover:text-stone-900 transition shadow-sm">
-              See live work
+              {t('hero.cta2')}
             </button>
           </div>
         </Reveal>
@@ -58,7 +58,7 @@ export const Hero: React.FC = () => {
             </div>
             <div className="text-left">
               <div className="flex gap-0.5">{[...Array(5)].map((_, i) => <Star key={i} className="w-3 h-3 fill-amber-400 text-amber-400" />)}</div>
-              <span><strong className="text-stone-900">5.0</strong> from 40+ BD clients • <strong className="text-stone-900">Rahim's sales up 2.3x</strong> after launch</span>
+              <span><strong className="text-stone-900">5.0</strong> {t('hero.rating')} • <strong className="text-stone-900">{t('hero.proof')}</strong> {t('hero.after')}</span>
             </div>
           </div>
         </Reveal>

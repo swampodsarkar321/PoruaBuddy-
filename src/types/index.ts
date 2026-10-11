@@ -97,6 +97,9 @@ export interface SiteSettings {
   whatsappNumber: string;
   paymentInstructions: string;
   heroNotice?: string;
+  offerText?: string;
+  offerEndsAt?: string;
+  couponCode?: string;
   updatedAt?: string;
 }
 

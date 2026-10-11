@@ -6,7 +6,7 @@ import { Reveal } from './Reveal';
 const AVATAR_BG = ['bg-emerald-700', 'bg-stone-800', 'bg-teal-700', 'bg-cyan-700', 'bg-amber-700'];
 
 export const Testimonials: React.FC = () => {
-  const { testimonials } = useApp();
+  const { testimonials, t } = useApp();
   if (testimonials.length === 0) return null;
 
   return (
@@ -15,8 +15,8 @@ export const Testimonials: React.FC = () => {
         <Reveal>
           <div className="text-center mb-10">
             <div className="flex justify-center gap-1 mb-3">{[...Array(5)].map((_, i) => <Star key={i} className="w-4 h-4 fill-amber-400 text-amber-400" />)}</div>
-            <h2 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-stone-900">Real shops, real results</h2>
-            <p className="text-sm text-stone-500 mt-2">Verified customers of Sairah Labs Bangladesh</p>
+            <h2 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-stone-900">{t('sec.reviews.t')}</h2>
+            <p className="text-sm text-stone-500 mt-2">{t('sec.reviews.sub')}</p>
           </div>
         </Reveal>
         <div className="grid sm:grid-cols-3 gap-4">

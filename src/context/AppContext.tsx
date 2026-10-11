@@ -46,6 +46,7 @@ import {
 } from '../types';
 import { INITIAL_PRODUCTS, INITIAL_SITE_SETTINGS } from '../data/initialProducts';
 import { INITIAL_TESTIMONIALS } from '../data/initialContent';
+import { STRINGS, Lang, Key } from '../i18n';
 
 interface AppContextType {
   // Navigation
@@ -117,6 +118,11 @@ interface AppContextType {
   testimonials: Testimonial[];
   portfolio: PortfolioItem[];
 
+  // Language
+  lang: Lang;
+  t: (key: Key) => string;
+  toggleLang: () => void;
+
   // Product reviews (user-submitted, admin-approved)
   reviews: ProductReview[];
   submitProductReview: (data: Omit<ProductReview, 'id' | 'status' | 'createdAt'>) => Promise<void>;
@@ -134,7 +140,7 @@ const AppContext = createContext<AppContextType | null>(null);
 
 export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   // Navigation states — deep-linkable via URL hash (e.g. /#rtdb-admin)
-  const VALID_TABS = ['home', 'products', 'pc-optimization', 'gaming-tools', 'windows-panels', 'websites', 'chatbot', 'custom-dev', 'portfolio', 'blog', 'contact', 'rtdb-admin'];
+  const VALID_TABS = ['home', 'products', 'pc-optimization', 'gaming-tools', 'windows-panels', 'websites', 'chatbot', 'custom-dev', 'portfolio', 'blog', 'track', 'contact', 'rtdb-admin'];
   const [activeTab, setActiveTabState] = useState<string>(() => {
     try {
       const h = window.location.hash.replace('#', '');
@@ -181,6 +187,21 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [testimonials, setTestimonials] = useState<Testimonial[]>(INITIAL_TESTIMONIALS);
   const [portfolio, setPortfolio] = useState<PortfolioItem[]>([]);
   const [reviews, setReviews] = useState<ProductReview[]>([]);
+  const [lang, setLang] = useState<Lang>(() => {
+    try {
+      return (localStorage.getItem('sl_lang') as Lang) === 'bn' ? 'bn' : 'en';
+    } catch {
+      return 'en';
+    }
+  });
+  const t = (key: Key) => STRINGS[lang][key] ?? STRINGS.en[key];
+  const toggleLang = () => {
+    setLang((prev) => {
+      const next = prev === 'en' ? 'bn' : 'en';
+      try { localStorage.setItem('sl_lang', next); } catch {}
+      return next;
+    });
+  };
   const [siteSettings, setSiteSettings] = useState<SiteSettings>(INITIAL_SITE_SETTINGS);
 
   // Cart state persisted to localStorage
@@ -650,6 +671,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         portfolio,
         reviews,
         submitProductReview,
+        lang,
+        t,
+        toggleLang,
         siteSettings,
         updateSiteSettings,
         toast,

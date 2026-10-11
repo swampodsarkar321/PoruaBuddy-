@@ -20,9 +20,16 @@ export const ProductCard: React.FC<{ product: Product }> = ({ product }) => {
   const accent = ACCENT[product.category] || 'bg-stone-100 text-stone-500 border-stone-200';
   const initial = product.name.charAt(0).toUpperCase();
   const { avg, count } = avgRating(reviews.filter((r) => r.productId === product.id && r.status === 'approved').map((r) => r.rating));
+  const img = product.imageUrls?.[0];
 
   return (
-    <div className="group flex flex-col rounded-3xl bg-white border border-stone-200 p-6 hover:shadow-[0_24px_60px_-24px_rgba(28,25,23,0.25)] hover:-translate-y-1 hover:border-stone-300 transition-all duration-300">
+    <div className="group flex flex-col rounded-3xl bg-white border border-stone-200 overflow-hidden hover:shadow-[0_24px_60px_-24px_rgba(28,25,23,0.25)] hover:-translate-y-1 hover:border-stone-300 transition-all duration-300">
+      {img && (
+        <div className="h-44 overflow-hidden cursor-pointer bg-stone-100" onClick={() => setSelectedProduct(product)}>
+          <img src={img} alt={product.name} loading="lazy" className="w-full h-full object-cover group-hover:scale-105 transition duration-500" />
+        </div>
+      )}
+      <div className="flex flex-col flex-1 p-6">
       <div className="flex items-start justify-between mb-5">
         <div className="w-12 h-12 rounded-2xl bg-stone-900 text-white flex items-center justify-center text-xl font-extrabold">
           {initial}
@@ -59,6 +66,7 @@ export const ProductCard: React.FC<{ product: Product }> = ({ product }) => {
             <WhatsAppIcon className="w-4 h-4" />
           </a>
         </div>
+      </div>
       </div>
     </div>
   );

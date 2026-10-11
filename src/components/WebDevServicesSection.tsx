@@ -12,18 +12,18 @@ const SERVICES = [
 ];
 
 export const WebDevServicesSection: React.FC = () => {
-  const { siteSettings } = useApp();
+  const { siteSettings, t } = useApp();
   return (
     <section className="bg-white border-y border-stone-200/80">
       <div className="max-w-6xl mx-auto px-5 py-20">
         <Reveal>
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-10">
           <div>
-            <p className="text-xs font-bold uppercase tracking-[0.2em] text-emerald-700 mb-3">Services</p>
-            <h2 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-stone-900">Everything you need to sell online</h2>
+            <p className="text-xs font-bold uppercase tracking-[0.2em] text-emerald-700 mb-3">{t('sec.services.k')}</p>
+            <h2 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-stone-900">{t('sec.services.t')}</h2>
           </div>
           <a href={waLink(siteSettings.whatsappNumber, 'Hello Sairah Labs! I need a website. Please share a free quote.')} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 text-sm font-semibold text-stone-900 underline underline-offset-4 shrink-0">
-            Get free quote <ArrowRight className="w-4 h-4" />
+            {t('sec.services.link')} <ArrowRight className="w-4 h-4" />
           </a>
         </div>
         <div className="grid sm:grid-cols-2 gap-4">

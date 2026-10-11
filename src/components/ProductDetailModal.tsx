@@ -18,6 +18,7 @@ export const ProductDetailModal: React.FC = () => {
   const currentPrice = isDiscounted ? selectedProduct.discountPriceBDT! : selectedProduct.priceBDT;
 
   const handleClose = () => setSelectedProduct(null);
+  const img = selectedProduct.imageUrls?.[0];
   const approved = reviews.filter((r) => r.productId === selectedProduct.id && r.status === 'approved');
   const { avg, count } = avgRating(approved.map((r) => r.rating));
 
@@ -69,6 +70,11 @@ export const ProductDetailModal: React.FC = () => {
         </div>
 
         <div className="p-6 sm:p-8 space-y-6">
+          {img && (
+            <div className="rounded-2xl overflow-hidden border border-stone-200 -mt-2">
+              <img src={img} alt={selectedProduct.name} className="w-full h-56 object-cover" />
+            </div>
+          )}
           {/* Price and Action Bar */}
           <div className="p-4 rounded-2xl bg-stone-50 border border-stone-200 flex flex-wrap items-center justify-between gap-4">
             <div>

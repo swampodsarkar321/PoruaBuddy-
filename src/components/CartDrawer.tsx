@@ -15,6 +15,7 @@ export const CartDrawer: React.FC = () => {
     cartTotalBDT,
     setActiveTab,
     siteSettings,
+    t,
   } = useApp();
 
   if (!isCartOpen) return null;
@@ -37,7 +38,7 @@ export const CartDrawer: React.FC = () => {
           <div className="px-6 py-5 border-b border-stone-100 flex items-center justify-between">
             <div className="flex items-center gap-2.5">
               <ShoppingBag className="w-5 h-5 text-stone-900" />
-              <h3 className="font-bold text-lg text-stone-900">Your cart</h3>
+              <h3 className="font-bold text-lg text-stone-900">{t('cart.title')}</h3>
               <span className="text-xs px-2 py-0.5 rounded-full bg-stone-100 text-stone-600 font-semibold">
                 {cart.length} items
               </span>
@@ -56,7 +57,7 @@ export const CartDrawer: React.FC = () => {
                 <div className="w-16 h-16 rounded-3xl bg-stone-100 flex items-center justify-center mb-4 text-stone-400">
                   <ShoppingBag className="w-7 h-7" />
                 </div>
-                <h4 className="text-base font-bold text-stone-900 mb-1">Your cart is empty</h4>
+                <h4 className="text-base font-bold text-stone-900 mb-1">{t('cart.empty')}</h4>
                 <p className="text-xs text-stone-500 max-w-xs mb-6">
                   Explore templates, PC optimization and website packages.
                 </p>
@@ -67,7 +68,7 @@ export const CartDrawer: React.FC = () => {
                   }}
                   className="px-5 py-2.5 rounded-full bg-stone-900 text-white text-xs font-bold hover:bg-stone-700 transition"
                 >
-                  Browse shop
+                  {t('cart.browse')}
                 </button>
               </div>
             ) : (
@@ -78,8 +79,12 @@ export const CartDrawer: React.FC = () => {
                     key={item.product.id}
                     className="p-3.5 rounded-2xl bg-stone-50 border border-stone-200/80 flex gap-3.5 items-center hover:border-stone-300 transition"
                   >
-                    <span className="w-14 h-14 rounded-2xl bg-stone-900 text-white flex items-center justify-center text-lg font-extrabold shrink-0">
-                      {item.product.name.charAt(0).toUpperCase()}
+                    <span className="w-14 h-14 rounded-2xl bg-stone-900 text-white flex items-center justify-center text-lg font-extrabold shrink-0 overflow-hidden">
+                      {item.product.imageUrls?.[0] ? (
+                        <img src={item.product.imageUrls[0]} alt={item.product.name} className="w-full h-full object-cover" />
+                      ) : (
+                        item.product.name.charAt(0).toUpperCase()
+                      )}
                     </span>
 
                     <div className="flex-1 min-w-0">
@@ -142,7 +147,7 @@ export const CartDrawer: React.FC = () => {
                   <span className="text-emerald-700 font-semibold">Confirmed on WhatsApp</span>
                 </div>
                 <div className="pt-2 border-t border-stone-200 flex justify-between items-baseline text-sm font-bold text-stone-900">
-                  <span>Total</span>
+                  <span>{t('cart.total')}</span>
                   <span className="text-xl font-extrabold">
                     ৳{cartTotalBDT.toLocaleString()}
                   </span>
@@ -164,7 +169,7 @@ export const CartDrawer: React.FC = () => {
                   className="flex-1 py-3 px-4 rounded-xl bg-[#25d366] hover:bg-[#1eb85a] text-white font-bold text-[13px] flex items-center justify-center gap-2 active:scale-[0.99] transition"
                 >
                   <WhatsAppIcon className="w-4 h-4" />
-                  <span>Order via WhatsApp</span>
+                  <span>{t('cart.order')}</span>
                 </a>
               </div>
 

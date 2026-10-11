@@ -35,15 +35,15 @@ const PLANS = [
 ];
 
 export const PricingSection: React.FC = () => {
-  const { siteSettings } = useApp();
+  const { siteSettings, t } = useApp();
   return (
     <section className="bg-white border-y border-stone-200/80">
       <div className="max-w-6xl mx-auto px-5 py-20">
         <Reveal>
           <div className="text-center mb-10">
-            <p className="text-xs font-bold uppercase tracking-[0.2em] text-emerald-700 mb-3">Website price in Bangladesh</p>
-            <h2 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-stone-900">Fixed pricing. No hidden cost.</h2>
-            <p className="text-sm text-stone-500 mt-2">Pay in Taka. Source code & deployment included in every package.</p>
+            <p className="text-xs font-bold uppercase tracking-[0.2em] text-emerald-700 mb-3">{t('sec.pricing.k')}</p>
+            <h2 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-stone-900">{t('sec.pricing.t')}</h2>
+            <p className="text-sm text-stone-500 mt-2">{t('sec.pricing.sub')}</p>
           </div>
         </Reveal>
         <div className="grid md:grid-cols-3 gap-4">
