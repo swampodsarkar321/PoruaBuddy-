@@ -101,6 +101,8 @@ export const RtdbAdminPanel: React.FC = () => {
   const [pDesc, setPDesc] = useState('');
   const [pStat, setPStat] = useState('');
 
+  const prevCounts = React.useRef({ inbox: -1, orders: -1 });
+
   useEffect(() => {
     if (!isAllowed) return;
     const offs = [
@@ -123,6 +125,21 @@ export const RtdbAdminPanel: React.FC = () => {
     setWaNumber(siteSettings.whatsappNumber || '');
     setHeroNotice((siteSettings as { heroNotice?: string }).heroNotice || '');
   }, [siteSettings]);
+
+  useEffect(() => {
+    if (!isAllowed || typeof Notification === 'undefined') return;
+    if (Notification.permission === 'default') Notification.requestPermission().catch(() => {});
+    const { inbox, orders: oc } = { inbox: inquiries.length, orders: orders.length };
+    if (prevCounts.current.inbox >= 0 && inbox > prevCounts.current.inbox && Notification.permission === 'granted') {
+      new Notification('Sairah Labs — new message', { body: 'A customer just sent a message. Check Inbox.' });
+      showToast('New inbox message!', 'info');
+    }
+    if (prevCounts.current.orders >= 0 && oc > prevCounts.current.orders && Notification.permission === 'granted') {
+      new Notification('Sairah Labs — new order', { body: 'A new order just came in. Check Orders.' });
+      showToast('New order received!', 'success');
+    }
+    prevCounts.current = { inbox, orders: oc };
+  }, [inquiries.length, orders.length, isAllowed]);
 
   if (!isAllowed) return <AdminLogin />;
 
@@ -150,22 +167,6 @@ export const RtdbAdminPanel: React.FC = () => {
     return [...map.values()].sort((a, b) => b.qty - a.qty).slice(0, 5);
   })();
 
-  // Browser alerts for new inbox/orders while panel is open
-  const prevCounts = React.useRef({ inbox: -1, orders: -1 });
-  useEffect(() => {
-    if (!isAllowed || typeof Notification === 'undefined') return;
-    if (Notification.permission === 'default') Notification.requestPermission().catch(() => {});
-    const { inbox, orders: oc } = { inbox: inquiries.length, orders: orders.length };
-    if (prevCounts.current.inbox >= 0 && inbox > prevCounts.current.inbox && Notification.permission === 'granted') {
-      new Notification('Sairah Labs — new message', { body: 'A customer just sent a message. Check Inbox.' });
-      showToast('New inbox message!', 'info');
-    }
-    if (prevCounts.current.orders >= 0 && oc > prevCounts.current.orders && Notification.permission === 'granted') {
-      new Notification('Sairah Labs — new order', { body: 'A new order just came in. Check Orders.' });
-      showToast('New order received!', 'success');
-    }
-    prevCounts.current = { inbox, orders: oc };
-  }, [inquiries.length, orders.length, isAllowed]);
   const stats = [
     { label: 'Products live', value: items.filter((p) => p.isPublished).length, sub: `${items.length} total`, icon: ShoppingBag },
     { label: 'Orders', value: orders.length, sub: `৳${revenue.toLocaleString()} collected`, icon: Package },
