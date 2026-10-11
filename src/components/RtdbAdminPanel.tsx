@@ -1,5 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useApp } from '../context/AppContext';
+import { signInWithEmailAndPassword, signOut } from 'firebase/auth';
+import { auth } from '../firebase/config';
 import { Product, ProductCategory, Inquiry } from '../types';
 import {
   rtdbProductsRef,
@@ -13,6 +15,8 @@ import {
   onValue,
 } from '../firebase/rtdb';
 import { Plus, Trash2, Pencil, X, Check, Database, ShoppingBag, MessagesSquare, Settings2 } from 'lucide-react';
+
+const ADMIN_EMAIL = 'mdswampodsarkar@gmail.com';
 
 const CATS: Array<{ id: ProductCategory; label: string }> = [
   { id: 'pc-optimization', label: 'PC Optimization' },
@@ -42,8 +46,55 @@ const emptyProduct = (): Product => ({
 
 const inputCls = "w-full px-4 py-2.5 rounded-xl bg-white border border-stone-200 text-sm text-stone-900 placeholder-stone-400 outline-none focus:border-stone-900 shadow-sm";
 
+const AdminLogin: React.FC<{ onDone: () => void }> = () => {
+  const { showToast } = useApp();
+  const [email, setEmail] = useState(ADMIN_EMAIL);
+  const [password, setPassword] = useState('');
+  const [busy, setBusy] = useState(false);
+
+  const login = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (email.trim().toLowerCase() !== ADMIN_EMAIL) {
+      showToast('This email is not authorized for admin access', 'error');
+      return;
+    }
+    setBusy(true);
+    try {
+      await signInWithEmailAndPassword(auth, email.trim(), password);
+      showToast('Welcome back, Admin', 'success');
+    } catch {
+      try { await signOut(auth); } catch {}
+      showToast('Wrong password or account not found. Create the user in Firebase Console first.', 'error');
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <div className="bg-transparent">
+      <section className="max-w-md mx-auto px-5 py-20">
+        <div className="rounded-[2rem] bg-white border border-stone-200 shadow-xl p-8 text-center">
+          <span className="w-14 h-14 rounded-3xl bg-stone-900 text-white flex items-center justify-center mx-auto mb-5">
+            <Database className="w-6 h-6" />
+          </span>
+          <h2 className="text-2xl font-extrabold tracking-tight text-stone-900 mb-1">DB Admin Login</h2>
+          <p className="text-sm text-stone-500 mb-6">Only the admin email can sign in here.</p>
+          <form onSubmit={login} className="space-y-3 text-left">
+            <input value={email} onChange={(e) => setEmail(e.target.value)} placeholder="Admin email" className={inputCls} />
+            <input value={password} onChange={(e) => setPassword(e.target.value)} type="password" placeholder="Password" className={inputCls} />
+            <button type="submit" disabled={busy} className="w-full py-3.5 rounded-xl bg-stone-900 text-white text-sm font-bold hover:bg-stone-700 disabled:opacity-50">
+              {busy ? 'Signing in...' : 'Login to admin panel'}
+            </button>
+          </form>
+        </div>
+      </section>
+    </div>
+  );
+};
+
 export const RtdbAdminPanel: React.FC = () => {
-  const { isAdmin, signInWithGoogle, showToast, siteSettings } = useApp();
+  const { user, showToast, siteSettings } = useApp();
+  const isAllowed = user?.email?.toLowerCase() === ADMIN_EMAIL;
   const [tab, setTab] = useState<'products' | 'inquiries' | 'settings'>('products');
   const [items, setItems] = useState<Product[]>([]);
   const [inquiries, setInquiries] = useState<Inquiry[]>([]);
@@ -69,21 +120,8 @@ export const RtdbAdminPanel: React.FC = () => {
     setHeroNotice((siteSettings as { heroNotice?: string }).heroNotice || '');
   }, [siteSettings]);
 
-  if (!isAdmin) {
-    return (
-      <div className="bg-transparent">
-        <section className="max-w-md mx-auto px-5 py-20 text-center">
-          <span className="w-14 h-14 rounded-3xl bg-stone-900 text-white flex items-center justify-center mx-auto mb-5">
-            <Database className="w-6 h-6" />
-          </span>
-          <h2 className="text-2xl font-extrabold text-stone-900 mb-2">DB Admin — restricted</h2>
-          <p className="text-sm text-stone-500 mb-6">Sign in with the admin Google account to manage the Realtime Database.</p>
-          <button onClick={signInWithGoogle} className="px-6 py-3 rounded-full bg-stone-900 text-white text-sm font-bold hover:bg-stone-700">
-            Sign in with Google
-          </button>
-        </section>
-      </div>
-    );
+  if (!isAllowed) {
+    return <AdminLogin onDone={() => {}} />;
   }
 
   const startNew = () => { setEditing(emptyProduct()); setFeatText(''); };
@@ -118,6 +156,9 @@ export const RtdbAdminPanel: React.FC = () => {
               <Database className="w-3.5 h-3.5" /> Realtime Database • chat-2-me-c3213
             </p>
             <h2 className="text-3xl font-extrabold tracking-tight text-stone-900">DB Admin Panel</h2>
+            <button onClick={async () => { await signOut(auth); showToast('Signed out', 'info'); }} className="text-xs font-semibold text-stone-400 hover:text-rose-600 underline underline-offset-4">
+              Logout ({user?.email})
+            </button>
           </div>
           <div className="flex gap-2 bg-white border border-stone-200 rounded-full p-1">
             {([
