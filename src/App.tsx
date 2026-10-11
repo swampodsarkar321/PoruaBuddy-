@@ -18,6 +18,7 @@ import { OrderSuccessModal } from './components/OrderSuccessModal';
 import { OrderTrackerModal } from './components/OrderTrackerModal';
 import { PoliciesModal } from './components/PoliciesModal';
 import { DevDocsModal } from './components/DevDocsModal';
+import { SiteProtection } from './components/SiteProtection';
 import { WhatsAppIcon } from './components/icons';
 import { waLink } from './utils/whatsapp';
 
@@ -40,6 +41,7 @@ const MainContent: React.FC = () => {
 
   return (
     <div className="min-h-screen flex flex-col bg-transparent text-stone-800">
+      <SiteProtection />
       {/* Toast */}
       {toast && (
         <div className="fixed bottom-6 right-6 z-50 px-4 py-3 rounded-2xl bg-stone-900 text-white text-sm font-medium shadow-xl">
