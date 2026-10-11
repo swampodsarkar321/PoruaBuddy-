@@ -6,26 +6,25 @@ import {
   onAuthStateChanged
 } from 'firebase/auth';
 import {
-  collection,
-  doc,
-  getDocs,
-  getDoc,
-  setDoc,
-  updateDoc,
-  deleteDoc,
-  onSnapshot,
-  query,
-  orderBy,
-  serverTimestamp
-} from 'firebase/firestore';
-import {
   auth,
-  db,
   googleProvider,
-  testFirestoreConnection,
-  handleFirestoreError,
-  OperationType
-} from '../firebase/config';
+  rtdbProductsRef,
+  rtdbSettingsRef,
+  rtdbOrdersRef,
+  rtdbInquiriesRef,
+  snapToProducts,
+  snapToOrders,
+  snapToInquiries,
+  saveProductRTDB,
+  deleteProductRTDB,
+  saveOrderRTDB,
+  updateOrderRTDB,
+  getOrderRTDB,
+  pushInquiryRTDB,
+  updateInquiryRTDB,
+  saveSettingsRTDB,
+  onValue,
+} from '../firebase/rtdb';
 import {
   Product,
   Order,
@@ -36,13 +35,6 @@ import {
   OrderStatus
 } from '../types';
 import { INITIAL_PRODUCTS, INITIAL_SITE_SETTINGS } from '../data/initialProducts';
-import {
-  rtdbProductsRef,
-  rtdbSettingsRef,
-  pushInquiryRTDB,
-  snapToProducts,
-  onValue,
-} from '../firebase/rtdb';
 
 interface AppContextType {
   // Navigation
@@ -123,7 +115,7 @@ const AppContext = createContext<AppContextType | null>(null);
 
 export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   // Navigation states — deep-linkable via URL hash (e.g. /#rtdb-admin)
-  const VALID_TABS = ['home', 'products', 'pc-optimization', 'gaming-tools', 'windows-panels', 'websites', 'chatbot', 'custom-dev', 'portfolio', 'blog', 'contact', 'admin', 'rtdb-admin'];
+  const VALID_TABS = ['home', 'products', 'pc-optimization', 'gaming-tools', 'windows-panels', 'websites', 'chatbot', 'custom-dev', 'portfolio', 'blog', 'contact', 'rtdb-admin'];
   const [activeTab, setActiveTabState] = useState<string>(() => {
     try {
       const h = window.location.hash.replace('#', '');
@@ -194,11 +186,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }, 4500);
   };
 
-  // Test Firestore Connection on boot
-  useEffect(() => {
-    testFirestoreConnection();
-  }, []);
-
   // Listen to Auth State
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
@@ -210,143 +197,54 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     return () => unsubscribe();
   }, []);
 
-  // Load / Sync Products from Firestore
+  // Load / Sync Products from Realtime Database (single source of truth)
   useEffect(() => {
-    let unsubscribe: () => void = () => {};
+    setIsLoadingProducts(true);
+    const off = onValue(rtdbProductsRef(), (snap) => {
+      const list = snapToProducts(snap.val());
+      setProducts(list.length > 0 ? list : INITIAL_PRODUCTS);
+      setIsLoadingProducts(false);
+    }, () => {
+      setProducts(INITIAL_PRODUCTS);
+      setIsLoadingProducts(false);
+    });
+    return () => off();
+  }, []);
 
-    const syncProducts = async () => {
-      try {
-        const prodCol = collection(db, 'products');
-        unsubscribe = onSnapshot(
-          prodCol,
-          (snapshot) => {
-            if (!snapshot.empty) {
-              const loaded: Product[] = [];
-              snapshot.forEach((docSnap) => {
-                loaded.push({ ...(docSnap.data() as Product), id: docSnap.id });
-              });
-              setProducts(loaded);
-            } else {
-              // Seed initial catalog if completely empty
-              setProducts(INITIAL_PRODUCTS);
-            }
-            setIsLoadingProducts(false);
-          },
-          (error) => {
-            console.warn('Products snapshot offline/error, using initial catalog:', error);
-            setProducts(INITIAL_PRODUCTS);
-            setIsLoadingProducts(false);
-          }
-        );
-      } catch (err) {
-        console.warn('Using offline product catalog:', err);
-        setProducts(INITIAL_PRODUCTS);
-        setIsLoadingProducts(false);
+  // Sync Site Settings from RTDB
+  useEffect(() => {
+    const off = onValue(rtdbSettingsRef(), (snap) => {
+      const val = snap.val();
+      if (val && typeof val === 'object') {
+        setSiteSettings((prev) => ({ ...prev, ...val }));
       }
-    };
-
-    syncProducts();
-    return () => unsubscribe();
+    }, () => {});
+    return () => off();
   }, []);
 
-  // Sync Site Settings
+  // Sync Orders for Admin (RTDB)
   useEffect(() => {
-    let unsubscribe: () => void = () => {};
-    try {
-      const settingsDoc = doc(db, 'siteSettings', 'main');
-      unsubscribe = onSnapshot(settingsDoc, (snap) => {
-        if (snap.exists()) {
-          setSiteSettings(snap.data() as SiteSettings);
-        }
-      }, (err) => {
-        console.warn('Site settings snapshot error:', err);
-      });
-    } catch (e) {
-      console.warn('Site settings initialization error:', e);
-    }
-    return () => unsubscribe();
-  }, []);
-
-  // RTDB (chat-2-me-c3213) overrides: products + settings win when present
-  useEffect(() => {
-    let offProducts = () => {};
-    let offSettings = () => {};
-    try {
-      offProducts = onValue(rtdbProductsRef(), (snap) => {
-        const list = snapToProducts(snap.val());
-        if (list.length > 0) {
-          setProducts(list);
-          setIsLoadingProducts(false);
-        }
-      }, () => {});
-      offSettings = onValue(rtdbSettingsRef(), (snap) => {
-        const val = snap.val();
-        if (val && typeof val === 'object') {
-          setSiteSettings((prev) => ({ ...prev, ...val }));
-        }
-      }, () => {});
-    } catch (e) {
-      console.warn('RTDB sync unavailable:', e);
-    }
-    return () => { offProducts(); offSettings(); };
-  }, []);
-
-  // Sync Orders for Admin or Authenticated User
-  useEffect(() => {
-    let unsubscribe: () => void = () => {};
     setIsLoadingOrders(true);
-
-    try {
-      const ordersCol = collection(db, 'orders');
-      const q = query(ordersCol, orderBy('createdAt', 'desc'));
-
-      unsubscribe = onSnapshot(
-        q,
-        (snapshot) => {
-          const list: Order[] = [];
-          snapshot.forEach((d) => {
-            list.push({ ...(d.data() as Order), id: d.id });
-          });
-          setOrders(list);
-          setIsLoadingOrders(false);
-        },
-        (error) => {
-          console.warn('Orders listener notice:', error);
-          // Fallback to locally cached guest orders if any
-          try {
-            const cached = localStorage.getItem('srs_my_orders');
-            if (cached) {
-              setOrders(JSON.parse(cached));
-            }
-          } catch {}
-          setIsLoadingOrders(false);
-        }
-      );
-    } catch {
+    const off = onValue(rtdbOrdersRef(), (snapshot) => {
+      setOrders(snapToOrders(snapshot.val()));
       setIsLoadingOrders(false);
-    }
-
-    return () => unsubscribe();
+    }, () => {
+      try {
+        const cached = localStorage.getItem('srs_my_orders');
+        if (cached) setOrders(JSON.parse(cached));
+      } catch {}
+      setIsLoadingOrders(false);
+    });
+    return () => off();
   }, [user, isAdmin]);
 
-  // Sync Inquiries for Admin
+  // Sync Inquiries for Admin (RTDB)
   useEffect(() => {
     if (!isAdmin) return;
-    let unsubscribe: () => void = () => {};
-    try {
-      const inquiriesCol = collection(db, 'inquiries');
-      const q = query(inquiriesCol, orderBy('createdAt', 'desc'));
-      unsubscribe = onSnapshot(q, (snapshot) => {
-        const list: Inquiry[] = [];
-        snapshot.forEach((d) => {
-          list.push({ ...(d.data() as Inquiry), id: d.id });
-        });
-        setInquiries(list);
-      }, (err) => {
-        console.warn('Inquiries snapshot notice:', err);
-      });
-    } catch {}
-    return () => unsubscribe();
+    const off = onValue(rtdbInquiriesRef(), (snapshot) => {
+      setInquiries(snapToInquiries(snapshot.val()));
+    }, () => {});
+    return () => off();
   }, [isAdmin]);
 
   // Cart Handlers
@@ -428,13 +326,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     };
 
     try {
-      await setDoc(doc(db, 'orders', orderId), {
-        ...newOrder,
-        serverCreated: serverTimestamp(),
-      });
+      await saveOrderRTDB(newOrder);
       showToast('Order submitted! Admin is reviewing your payment.', 'success');
     } catch (err) {
-      console.warn('Could not write to Firestore directly, caching locally:', err);
+      console.warn('Could not write order to RTDB, caching locally:', err);
       showToast('Order saved! Please record your Order ID for reference.', 'success');
     }
 
@@ -466,7 +361,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     if (downloadLinks !== undefined) updates.downloadLinks = downloadLinks;
 
     try {
-      await updateDoc(doc(db, 'orders', orderId), updates);
+      await updateOrderRTDB(orderId, updates);
       showToast(`Order status updated to "${status}"`, 'success');
     } catch (err) {
       console.warn('Local update fallback for order:', err);
@@ -492,7 +387,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     };
 
     try {
-      await updateDoc(doc(db, 'orders', orderId), updates);
+      await updateOrderRTDB(orderId, updates);
       showToast('Payment verification details submitted!', 'success');
     } catch (err) {
       console.warn('Local fallback payment info update:', err);
@@ -518,12 +413,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       if (inLocal) return inLocal;
     } catch {}
 
-    // Check Firestore
+    // Check RTDB
     try {
-      const snap = await getDoc(doc(db, 'orders', trimmedId));
-      if (snap.exists()) {
-        return { ...(snap.data() as Order), id: snap.id };
-      }
+      const found = await getOrderRTDB(trimmedId);
+      if (found) return found;
     } catch (e) {
       console.warn('Order lookup error:', e);
     }
@@ -559,7 +452,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     };
 
     try {
-      await setDoc(doc(db, 'products', id), fullProd);
+      await saveProductRTDB(fullProd);
       showToast('Product saved successfully!', 'success');
     } catch (err) {
       console.warn('Saving product locally:', err);
@@ -577,7 +470,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   const deleteProduct = async (productId: string) => {
     try {
-      await deleteDoc(doc(db, 'products', productId));
+      await deleteProductRTDB(productId);
       showToast('Product deleted', 'info');
     } catch (err) {
       console.warn('Deleting product locally:', err);
@@ -588,7 +481,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const resetToInitialProducts = async () => {
     try {
       for (const prod of INITIAL_PRODUCTS) {
-        await setDoc(doc(db, 'products', prod.id), prod);
+        await saveProductRTDB(prod);
       }
       showToast('Catalog initialized to full Sairah Labs standard!', 'success');
     } catch (err) {
@@ -609,18 +502,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     };
 
     try {
-      await setDoc(doc(db, 'inquiries', id), newInquiry);
+      await pushInquiryRTDB(newInquiry);
       showToast('Your inquiry has been submitted! We will contact you on WhatsApp/Phone.', 'success');
     } catch (err) {
       console.warn('Inquiry cached locally:', err);
       showToast('Thank you! Your request has been received.', 'success');
-    }
-
-    // Mirror to RTDB (separate DB admin panel reads from here)
-    try {
-      await pushInquiryRTDB(newInquiry);
-    } catch (err) {
-      console.warn('RTDB inquiry mirror failed:', err);
     }
 
     setInquiries((prev) => [newInquiry, ...prev]);
@@ -628,7 +514,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   const updateInquiryStatus = async (id: string, status: 'New' | 'In Discussion' | 'Closed') => {
     try {
-      await updateDoc(doc(db, 'inquiries', id), { status });
+      await updateInquiryRTDB(id, { status });
       showToast('Inquiry status updated', 'info');
     } catch (err) {
       console.warn('Inquiry status updated locally:', err);
@@ -645,7 +531,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     };
 
     try {
-      await setDoc(doc(db, 'siteSettings', 'main'), updated);
+      await saveSettingsRTDB(updated);
       showToast('Site settings updated successfully!', 'success');
     } catch (err) {
       console.warn('Updated site settings locally:', err);

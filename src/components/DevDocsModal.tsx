@@ -140,7 +140,7 @@ npm run build`}</pre>
                   <li><code>/src/context/AppContext.tsx</code> — Global State, Firebase auth, Firestore listener &amp; Cart</li>
                   <li><code>/src/data/initialProducts.ts</code> — Initial 20+ Digital Products, Guides &amp; Services</li>
                   <li><code>/src/firebase/config.ts</code> — Firebase Client initialization with databaseId &amp; error handler</li>
-                  <li><code>/src/components/AdminDashboard.tsx</code> — Admin Order Review, Product CRUD &amp; Settings</li>
+                  <li><code>/src/components/RtdbAdminPanel.tsx</code> — Admin Order Review, Product CRUD &amp; Settings (Realtime Database)</li>
                   <li><code>/firestore.rules</code> — Hardened Firestore security rules with ABAC &amp; RBAC protection</li>
                 </ul>
               </div>

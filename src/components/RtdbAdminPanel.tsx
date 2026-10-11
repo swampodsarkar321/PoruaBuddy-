@@ -1,20 +1,24 @@
 import React, { useEffect, useState } from 'react';
 import { useApp } from '../context/AppContext';
 import { signInWithEmailAndPassword, signOut } from 'firebase/auth';
-import { auth } from '../firebase/config';
-import { Product, ProductCategory, Inquiry } from '../types';
+import { auth } from '../firebase/rtdb';
+import { Product, ProductCategory, Inquiry, Order } from '../types';
 import {
   rtdbProductsRef,
   rtdbInquiriesRef,
+  rtdbOrdersRef,
   rtdbSettingsRef,
   snapToProducts,
+  snapToOrders,
   saveProductRTDB,
   deleteProductRTDB,
+  updateOrderRTDB,
+  deleteOrderRTDB,
   saveSettingsRTDB,
   deleteInquiryRTDB,
   onValue,
 } from '../firebase/rtdb';
-import { Plus, Trash2, Pencil, X, Check, Database, ShoppingBag, MessagesSquare, Settings2 } from 'lucide-react';
+import { Plus, Trash2, Pencil, X, Check, Database, ShoppingBag, MessagesSquare, Settings2, Package } from 'lucide-react';
 
 const ADMIN_EMAIL = 'mdswampodsarkar@gmail.com';
 
@@ -95,9 +99,10 @@ const AdminLogin: React.FC<{ onDone: () => void }> = () => {
 export const RtdbAdminPanel: React.FC = () => {
   const { user, showToast, siteSettings } = useApp();
   const isAllowed = user?.email?.toLowerCase() === ADMIN_EMAIL;
-  const [tab, setTab] = useState<'products' | 'inquiries' | 'settings'>('products');
+  const [tab, setTab] = useState<'products' | 'orders' | 'inquiries' | 'settings'>('products');
   const [items, setItems] = useState<Product[]>([]);
   const [inquiries, setInquiries] = useState<Inquiry[]>([]);
+  const [orders, setOrders] = useState<Order[]>([]);
   const [editing, setEditing] = useState<Product | null>(null);
   const [featText, setFeatText] = useState('');
   const [waNumber, setWaNumber] = useState('');
@@ -112,7 +117,8 @@ export const RtdbAdminPanel: React.FC = () => {
         setInquiries(list.reverse());
       } else setInquiries([]);
     }, () => {});
-    return () => { off1(); off2(); };
+    const off3 = onValue(rtdbOrdersRef(), (snap) => setOrders(snapToOrders(snap.val())), () => {});
+    return () => { off1(); off2(); off3(); };
   }, []);
 
   useEffect(() => {
@@ -163,6 +169,7 @@ export const RtdbAdminPanel: React.FC = () => {
           <div className="flex gap-2 bg-white border border-stone-200 rounded-full p-1">
             {([
               { id: 'products', label: 'Products', icon: ShoppingBag },
+              { id: 'orders', label: 'Orders', icon: Package },
               { id: 'inquiries', label: 'Inbox', icon: MessagesSquare },
               { id: 'settings', label: 'Settings', icon: Settings2 },
             ] as const).map((t) => (
@@ -207,6 +214,32 @@ export const RtdbAdminPanel: React.FC = () => {
               </div>
             )}
           </>
+        )}
+
+        {tab === 'orders' && (
+          <div className="space-y-3">
+            {orders.length === 0 && (
+              <div className="py-16 text-center rounded-3xl bg-white border border-dashed border-stone-300 text-sm text-stone-400">No orders yet — WhatsApp orders can be recorded here.</div>
+            )}
+            {orders.map((o) => (
+              <div key={o.id} className="rounded-2xl bg-white border border-stone-200 p-5">
+                <div className="flex flex-wrap items-start justify-between gap-3">
+                  <div>
+                    <p className="font-bold text-stone-900 text-sm">{o.customerName || 'Guest'} <span className="font-normal text-stone-400">• {o.customerPhone}</span></p>
+                    <p className="text-xs text-stone-500 mt-1 font-mono">{o.id} • ৳{o.totalAmountBDT.toLocaleString()}</p>
+                    <p className="text-xs text-stone-500 mt-0.5">{o.items?.map((i) => `${i.productName} x${i.quantity}`).join(', ')}</p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <select value={o.paymentStatus} onChange={async (e) => { await updateOrderRTDB(o.id, { paymentStatus: e.target.value as Order['paymentStatus'] }); showToast('Order updated', 'success'); }}
+                      className="px-3 py-2 rounded-xl bg-stone-50 border border-stone-200 text-xs font-semibold text-stone-700 outline-none">
+                      {['Pending', 'Awaiting Payment', 'Payment Under Review', 'Paid', 'In Progress', 'Ready for Delivery', 'Completed', 'Rejected', 'Cancelled'].map((s) => <option key={s}>{s}</option>)}
+                    </select>
+                    <button onClick={async () => { if (confirm('Delete this order?')) await deleteOrderRTDB(o.id); }} className="p-2 rounded-lg text-stone-300 hover:text-rose-600 hover:bg-rose-50" title="Delete"><Trash2 className="w-4 h-4" /></button>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
         )}
 
         {tab === 'inquiries' && (

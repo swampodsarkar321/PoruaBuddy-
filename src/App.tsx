@@ -14,7 +14,6 @@ import { FaqSection } from './components/FaqSection';
 import { BlogSection } from './components/BlogSection';
 import { Testimonials } from './components/Testimonials';
 import { ContactSection } from './components/ContactSection';
-import { AdminDashboard } from './components/AdminDashboard';
 import { RtdbAdminPanel } from './components/RtdbAdminPanel';
 import { CartDrawer } from './components/CartDrawer';
 import { ProductDetailModal } from './components/ProductDetailModal';
@@ -153,9 +152,6 @@ const MainContent: React.FC = () => {
 
         {/* VIEW: CONTACT & FAQ */}
         {activeTab === 'contact' && <ContactSection />}
-
-        {/* VIEW: ADMIN DASHBOARD */}
-        {activeTab === 'admin' && <AdminDashboard />}
 
         {/* VIEW: RTDB ADMIN (separate Realtime Database panel) */}
         {activeTab === 'rtdb-admin' && <RtdbAdminPanel />}
