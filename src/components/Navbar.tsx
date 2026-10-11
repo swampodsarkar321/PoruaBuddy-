@@ -5,7 +5,7 @@ import { Logo } from './Logo';
 import { waLink } from '../utils/whatsapp';
 
 export const Navbar: React.FC = () => {
-  const { activeTab, setActiveTab, cartCount, setIsCartOpen, siteSettings, isAdmin, lang, t, toggleLang } = useApp();
+  const { activeTab, setActiveTab, cartCount, setIsCartOpen, siteSettings, isAdmin, t } = useApp();
   const [open, setOpen] = useState(false);
   const items = [
     { id: 'home', label: t('nav.home') },
@@ -41,9 +41,6 @@ export const Navbar: React.FC = () => {
             <a href={waLink(siteSettings.whatsappNumber, 'Hello Sairah Labs! I need a website. Please share a free quote.')} target="_blank" rel="noopener noreferrer" className="hidden md:flex items-center gap-1.5 px-4 py-2 rounded-full bg-stone-900 text-white text-sm font-semibold hover:bg-stone-700 transition">
               {t('nav.quote')}
             </a>
-          <button onClick={toggleLang} title="বাংলা / English" className="w-9 h-9 rounded-full border border-stone-200 bg-white text-[11px] font-extrabold text-stone-600 hover:border-stone-900 hover:text-stone-900 transition">
-            {lang === 'en' ? 'বাং' : 'EN'}
-          </button>
           <button onClick={() => go('track')} title="Track order" className="relative w-9 h-9 rounded-full border border-stone-200 bg-white hidden sm:flex items-center justify-center text-stone-500 hover:border-stone-900 hover:text-stone-900 transition">
             <Package className="w-4 h-4" />
           </button>

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useApp } from '../context/AppContext';
 import { X, Send } from 'lucide-react';
-import { MessengerIcon } from './icons';
+import { WhatsAppIcon } from './icons';
 
 export const ChatWidget: React.FC = () => {
   const { siteSettings, setActiveTab } = useApp();
@@ -38,21 +38,21 @@ export const ChatWidget: React.FC = () => {
   return (
     <>
       {!open && (
-        <button onClick={() => setOpen(true)} title="Chat with us"
-          className="fixed bottom-6 left-6 z-40 w-14 h-14 rounded-full bg-stone-900 text-white flex items-center justify-center shadow-[0_16px_40px_-12px_rgba(28,25,23,0.5)] hover:scale-105 transition">
-          <MessengerIcon className="w-6 h-6" />
+        <button onClick={() => setOpen(true)} title="Chat on WhatsApp"
+          className="fixed bottom-6 left-6 z-40 w-14 h-14 rounded-full bg-[#25d366] text-white flex items-center justify-center shadow-[0_16px_40px_-12px_rgba(37,211,102,0.5)] hover:scale-105 transition">
+          <WhatsAppIcon className="w-7 h-7" />
           <span className="absolute -top-0.5 -right-0.5 w-3.5 h-3.5 rounded-full bg-emerald-500 border-2 border-[#fafaf9]" />
         </button>
       )}
       {open && (
         <div className="fixed bottom-6 left-6 z-50 w-[330px] max-w-[calc(100vw-3rem)] rounded-3xl bg-white border border-stone-200 shadow-2xl overflow-hidden flex flex-col">
           <div className="flex items-center gap-2.5 px-4 py-3.5 bg-stone-900 text-white">
-            <span className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center shrink-0">
-              <MessengerIcon className="w-4 h-4" />
-            </span>
+          <span className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center shrink-0">
+            <WhatsAppIcon className="w-4 h-4" />
+          </span>
             <span className="flex-1">
-              <span className="block text-[13px] font-bold leading-tight">Sairah AI</span>
-              <span className="flex items-center gap-1 text-[11px] text-emerald-300"><span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" /> Online now</span>
+            <span className="block text-[13px] font-bold leading-tight">Sairah WhatsApp</span>
+            <span className="flex items-center gap-1 text-[11px] text-emerald-300"><span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" /> Online now</span>
             </span>
             <button onClick={() => setOpen(false)} className="p-1.5 text-stone-400 hover:text-white"><X className="w-4 h-4" /></button>
           </div>
