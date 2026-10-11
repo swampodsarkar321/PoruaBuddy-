@@ -373,7 +373,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const createOrder = async (
     orderData: Omit<Order, 'id' | 'createdAt' | 'updatedAt' | 'paymentStatus'>
   ): Promise<Order> => {
-    const orderId = `SRS-${Date.now().toString(36).toUpperCase()}-${Math.floor(1000 + Math.random() * 9000)}`;
+    const orderId = `SL-${Date.now().toString(36).toUpperCase()}-${Math.floor(1000 + Math.random() * 9000)}`;
     const newOrder: Order = {
       ...orderData,
       id: orderId,
@@ -545,7 +545,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       for (const prod of INITIAL_PRODUCTS) {
         await setDoc(doc(db, 'products', prod.id), prod);
       }
-      showToast('Catalog initialized to full SRS Digital Labs standard!', 'success');
+      showToast('Catalog initialized to full Sairah Labs standard!', 'success');
     } catch (err) {
       console.warn('Seeding products locally:', err);
       setProducts(INITIAL_PRODUCTS);

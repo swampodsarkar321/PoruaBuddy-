@@ -57,7 +57,7 @@ export const DevDocsModal: React.FC = () => {
             </div>
             <div>
               <h3 className="text-lg font-bold text-white">
-                SRS Digital Labs — Production &amp; Architecture Deliverables
+                Sairah Labs — Production &amp; Architecture Deliverables
               </h3>
               <p className="text-xs text-slate-400">
                 Developer: Swampod • Version: 1.0.0 • Master Project Specification Deliverables (Items 1–12)
@@ -104,7 +104,7 @@ export const DevDocsModal: React.FC = () => {
                 <span>1. Project Source &amp; 2. Installation &amp; Local Dev Setup</span>
               </h4>
               <p>
-                SRS Digital Labs is engineered with <strong>React 19 + TypeScript + Vite + Tailwind CSS v4</strong>.
+                Sairah Labs is engineered with <strong>React 19 + TypeScript + Vite + Tailwind CSS v4</strong>.
                 Follow the standard commands below to run locally or inspect dependencies:
               </p>
 
@@ -243,7 +243,7 @@ GEMINI_API_KEY="MY_GEMINI_API_KEY"`}</pre>
                 <span>7. Vercel Deployment Instructions</span>
               </h4>
               <p>
-                Deploying SRS Digital Labs to Vercel takes under 2 minutes:
+                Deploying Sairah Labs to Vercel takes under 2 minutes:
               </p>
               <ol className="list-decimal list-inside space-y-2 p-4 rounded-xl bg-slate-900/60 border border-slate-800 text-slate-300">
                 <li>Push code to a GitHub repository (e.g. <code>github.com/swampod/srs-web-studio</code>).</li>

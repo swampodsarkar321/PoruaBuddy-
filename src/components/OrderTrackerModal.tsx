@@ -189,7 +189,7 @@ export const OrderTrackerModal: React.FC = () => {
               <Search className="w-4 h-4 absolute left-3 top-3 text-slate-500" />
               <input
                 type="text"
-                placeholder="Enter Order ID (e.g. SRS-ORD-...)"
+                placeholder="Enter Order ID (e.g. SL-ORD-...)"
                 value={searchInput}
                 onChange={(e) => setSearchInput(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
@@ -417,7 +417,7 @@ export const OrderTrackerModal: React.FC = () => {
               {/* Help & Direct WhatsApp Support */}
               <div className="pt-2 flex flex-col sm:flex-row gap-3">
                 <a
-                  href={`https://wa.me/${siteSettings.whatsappNumber.replace(/[^0-9]/g, '')}?text=Hello%20SRS%20Studio,%20inquiry%20regarding%20Order%20${encodeURIComponent(currentOrder.id)}`}
+                  href={`https://wa.me/${siteSettings.whatsappNumber.replace(/[^0-9]/g, '')}?text=Hello%20Sairah%20Labs,%20inquiry%20regarding%20Order%20${encodeURIComponent(currentOrder.id)}`}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="flex-1 py-3 px-4 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-700 text-xs font-bold text-emerald-400 flex items-center justify-center gap-2 transition"
@@ -432,7 +432,7 @@ export const OrderTrackerModal: React.FC = () => {
               <AlertCircle className="w-8 h-8 text-slate-500 mx-auto mb-2" />
               <p className="text-xs">No order record matched &quot;{searchInput}&quot;.</p>
               <p className="text-[11px] text-slate-500 mt-1">
-                Please double check the Order ID format (e.g. SRS-ORD-...) or reach out to WhatsApp support.
+                Please double check the Order ID format (e.g. SL-ORD-...) or reach out to WhatsApp support.
               </p>
             </div>
           ) : null}

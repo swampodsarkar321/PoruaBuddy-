@@ -67,7 +67,7 @@ export const PricingSection: React.FC = () => {
                   ))}
                 </ul>
                 <a
-                  href={waLink(siteSettings.whatsappNumber, `Hello SRS Digital Labs! I want the ${p.name} package (${p.price}). Please share details.`)}
+                  href={waLink(siteSettings.whatsappNumber, `Hello Sairah Labs! I want the ${p.name} package (${p.price}). Please share details.`)}
                   target="_blank" rel="noopener noreferrer"
                   className={`block text-center px-4 py-3 rounded-xl text-sm font-bold transition active:scale-[0.99] ${p.tag === 'Most popular' ? 'bg-white text-stone-900 hover:bg-stone-200' : 'bg-stone-900 text-white hover:bg-stone-700'}`}
                 >

@@ -15,7 +15,7 @@ const PLANS = [
     sub: 'Try it out — 1 Page included',
     features: ['1 connected Page', '20 knowledge entries', '50 AI replies', 'Basic inbox + analytics'],
     cta: 'Start trial on WhatsApp',
-    msg: 'Hello SRS Digital Labs! I want to start the FREE 7-day AI chatbot trial for my Facebook Page.',
+    msg: 'Hello Sairah Labs! I want to start the FREE 7-day AI chatbot trial for my Facebook Page.',
     active: false,
     highlight: false,
   },
@@ -27,7 +27,7 @@ const PLANS = [
     sub: 'One-time setup ৳2,000 · best for small shops',
     features: ['1 connected Page', '500 knowledge entries', '2,000 AI replies / month', 'Human handover + analytics', 'Fast WhatsApp setup'],
     cta: 'Order now on WhatsApp',
-    msg: 'Hello SRS Digital Labs! I want to order the BUSINESS AI chatbot plan (৳800/month + ৳2,000 setup). My Page link is: ',
+    msg: 'Hello Sairah Labs! I want to order the BUSINESS AI chatbot plan (৳800/month + ৳2,000 setup). My Page link is: ',
     active: true,
     highlight: true,
   },
@@ -39,7 +39,7 @@ const PLANS = [
     sub: 'One-time setup ৳5,000 · multiple Pages & brands',
     features: ['3 connected Pages', '5,000 knowledge entries', '20,000 AI replies / month', 'Priority support', 'Monthly report'],
     cta: 'Talk to us on WhatsApp',
-    msg: 'Hello SRS Digital Labs! I am interested in the PREMIUM AI chatbot plan (৳2,000/month). Please share details.',
+    msg: 'Hello Sairah Labs! I am interested in the PREMIUM AI chatbot plan (৳2,000/month). Please share details.',
     active: false,
     highlight: false,
   },
@@ -61,7 +61,7 @@ export const ChatbotSection: React.FC = () => {
   const { submitInquiry, showToast, siteSettings } = useApp();
 
   const [messages, setMessages] = useState<Array<{ sender: 'user' | 'bot'; text: string; time: string }>>([
-    { sender: 'bot', text: 'আসসালামু আলাইকুম! SRS AI এসিস্ট্যান্টে স্বাগতম। ডেলিভারি চার্জ, প্রোডাক্ট প্রাইস বা কাস্টম ওয়েবসাইট — কী জানতে চান?', time: '10:00 AM' },
+    { sender: 'bot', text: 'আসসালামু আলাইকুম! Sairah AI এসিস্ট্যান্টে স্বাগতম। ডেলিভারি চার্জ, প্রোডাক্ট প্রাইস বা কাস্টম ওয়েবসাইট — কী জানতে চান?', time: '10:00 AM' },
   ]);
   const [inputMessage, setInputMessage] = useState('');
   const [isTyping, setIsTyping] = useState(false);
@@ -111,7 +111,7 @@ export const ChatbotSection: React.FC = () => {
     try {
       await submitInquiry({
         name: leadName,
-        email: 'chatbot-lead@srsdigitallabs.com',
+        email: 'chatbot-lead@sairahlabs.com',
         phone: leadPhone,
         serviceType: `AI Messenger Bot — ${leadPlan}`,
         message: `Facebook Page: ${leadPageUrl || 'Not provided'}. Interested in automated Messenger deployment.`,
@@ -141,7 +141,7 @@ export const ChatbotSection: React.FC = () => {
                 <MessengerIcon className="w-4 h-4 text-white" />
               </span>
               <span>
-                <span className="block font-bold text-sm text-stone-900">SRS Digital Labs</span>
+                <span className="block font-bold text-sm text-stone-900">Sairah Labs</span>
                 <span className="block text-[11px] text-stone-400">Messenger chatbot platform</span>
               </span>
             </div>
@@ -210,7 +210,7 @@ export const ChatbotSection: React.FC = () => {
                   <MessengerIcon className="w-3.5 h-3.5 text-white" />
                 </span>
                 <span>
-                  <span className="block text-[13px] font-bold text-stone-900">SRS AI Agent</span>
+                  <span className="block text-[13px] font-bold text-stone-900">Sairah AI Agent</span>
                   <span className="flex items-center gap-1 text-[11px] text-emerald-700"><span className="w-1.5 h-1.5 rounded-full bg-emerald-500" /> Online — replies instantly</span>
                 </span>
               </div>

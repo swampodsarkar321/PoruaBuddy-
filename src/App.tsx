@@ -98,7 +98,7 @@ const MainContent: React.FC = () => {
                   <h3 className="relative text-3xl sm:text-4xl font-extrabold tracking-tight mb-3">Have a project in mind?</h3>
                   <p className="relative text-sm text-stone-400 mb-7">Free quote within a few hours — no commitment.</p>
                   <a
-                    href={waLink(siteSettings.whatsappNumber, 'Hello SRS Digital Labs! I need a website. Please share a free quote.')}
+                    href={waLink(siteSettings.whatsappNumber, 'Hello Sairah Labs! I need a website. Please share a free quote.')}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="relative inline-block px-8 py-3.5 rounded-full bg-white text-stone-900 text-sm font-bold hover:bg-stone-200 transition"
@@ -159,7 +159,7 @@ const MainContent: React.FC = () => {
 
       {/* Floating WhatsApp Action Button */}
       <a
-        href={`https://wa.me/${siteSettings.whatsappNumber.replace(/[^0-9]/g, '')}?text=Hello%20SRS%20Digital%20Labs,%20I%20have%20an%20inquiry`}
+        href={`https://wa.me/${siteSettings.whatsappNumber.replace(/[^0-9]/g, '')}?text=Hello%20Sairah%20Labs,%20I%20have%20an%20inquiry`}
         target="_blank"
         rel="noopener noreferrer"
         className="fixed bottom-6 right-6 z-40 flex items-center gap-2.5 pl-3 pr-4 py-2.5 rounded-full bg-white border border-stone-200 font-bold text-xs text-stone-900 shadow-[0_16px_40px_-12px_rgba(28,25,23,0.35)] transition transform hover:scale-105 hover:border-emerald-500"

@@ -10,7 +10,7 @@ const MARQUEE = ['Business Websites', 'E-commerce Stores', 'AI Chatbots', 'Top-u
 
 export const Hero: React.FC = () => {
   const { setActiveTab, siteSettings } = useApp();
-  const waQuote = `https://wa.me/${siteSettings.whatsappNumber.replace(/[^0-9]/g, '')}?text=${encodeURIComponent('Hello SRS Digital Labs! I need a website. Please share a free quote.')}`;
+  const waQuote = `https://wa.me/${siteSettings.whatsappNumber.replace(/[^0-9]/g, '')}?text=${encodeURIComponent('Hello Sairah Labs! I need a website. Please share a free quote.')}`;
   return (
     <section className="relative overflow-hidden bg-transparent">
       <div className="absolute inset-0 pointer-events-none">
@@ -75,7 +75,7 @@ export const Hero: React.FC = () => {
               <div className="flex items-center gap-1.5 px-4 py-3 border-b border-stone-100 bg-stone-50">
                 <span className="w-2.5 h-2.5 rounded-full bg-rose-300" /><span className="w-2.5 h-2.5 rounded-full bg-amber-300" /><span className="w-2.5 h-2.5 rounded-full bg-emerald-400" />
                 <span className="ml-3 text-[11px] text-stone-500 bg-white border border-stone-200 rounded-md px-2.5 py-1 flex items-center gap-1.5">
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" /> yourstore.com — built by SRS
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" /> yourstore.com — built by Sairah Labs
                 </span>
               </div>
               <div className="grid sm:grid-cols-3 gap-3 p-4">

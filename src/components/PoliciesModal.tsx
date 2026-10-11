@@ -76,7 +76,7 @@ export const PoliciesModal: React.FC = () => {
                 <span>PC Optimization &amp; System Tuning Legal Disclaimer</span>
               </h4>
               <p>
-                <strong>1. No Arbitrary FPS Guarantees:</strong> SRS Digital Labs strictly does not advertise or promise guaranteed
+                <strong>1. No Arbitrary FPS Guarantees:</strong> Sairah Labs strictly does not advertise or promise guaranteed
                 percentage or fixed number FPS increases. Actual framerate improvements, frame pacing, and temperature reductions
                 are entirely contingent upon hardware silicon variance, cooling solutions, motherboard VRMs, GPU architecture, RAM speed,
                 operating system version, and installed background software.
@@ -87,7 +87,7 @@ export const PoliciesModal: React.FC = () => {
                 Web visitors are strictly informed that monitoring dashboards displayed in the browser represent cloud telemetry and catalog views.
               </p>
               <p>
-                <strong>3. Compliance with Game &amp; Anti-Cheat Terms:</strong> All guides, configurations, and utilities provided by SRS Digital Labs
+                <strong>3. Compliance with Game &amp; Anti-Cheat Terms:</strong> All guides, configurations, and utilities provided by Sairah Labs
                 strictly adhere to game terms of service. We <strong>never</strong> supply cheats, bots, injectors, or tools intended to bypass
                 anti-cheat engines such as Vanguard, Easy Anti-Cheat, BattlEye, or Ricochet.
               </p>
@@ -130,7 +130,7 @@ export const PoliciesModal: React.FC = () => {
               </p>
               <p>
                 <strong>2. Access Retrieval:</strong> Customers do not need an account to retrieve paid downloads. You can simply open the
-                <strong>Track Order</strong> portal on our website, input your unique Order Reference (e.g. <code>SRS-ORD-XXXX</code>), and
+                <strong>Track Order</strong> portal on our website, input your unique Order Reference (e.g. <code>SL-ORD-XXXX</code>), and
                 access your download links and license keys immediately once verified.
               </p>
               <p>
@@ -147,7 +147,7 @@ export const PoliciesModal: React.FC = () => {
                 <span>Terms of Service</span>
               </h4>
               <p>
-                By placing an order on SRS Digital Labs, you acknowledge that you are either the authorized owner of the payment account
+                By placing an order on Sairah Labs, you acknowledge that you are either the authorized owner of the payment account
                 or have obtained explicit permission. All source code templates purchased are licensed for commercial deployment on individual
                 or unlimited client sites as designated by the relevant tier. Redistribution or re-selling of raw templates as a competing template pack is prohibited.
               </p>

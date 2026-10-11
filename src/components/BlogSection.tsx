@@ -65,7 +65,7 @@ export const BlogSection: React.FC = () => {
           <div className="mt-10 p-7 rounded-3xl bg-stone-900 text-white text-center">
             <h3 className="font-bold text-lg mb-1">Need this for your business?</h3>
             <p className="text-sm text-stone-400 mb-5">Free quote on WhatsApp within hours.</p>
-            <a href="https://wa.me/8801767882562?text=Hello%20SRS%20Digital%20Labs!%20I%20read%20your%20blog.%20Please%20share%20a%20free%20quote." target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 px-6 py-3 rounded-full bg-white text-stone-900 text-sm font-bold hover:bg-stone-200">
+            <a href="https://wa.me/8801767882562?text=Hello%20Sairah%20Labs!%20I%20read%20your%20blog.%20Please%20share%20a%20free%20quote." target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 px-6 py-3 rounded-full bg-white text-stone-900 text-sm font-bold hover:bg-stone-200">
               Get free quote <ArrowRight className="w-4 h-4" />
             </a>
           </div>

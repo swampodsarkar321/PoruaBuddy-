@@ -14,7 +14,7 @@ export const Logo: React.FC<{ size?: 'sm' | 'md' | 'lg' }> = ({ size = 'md' }) =
   return (
     <span className={`${box} bg-gradient-to-b from-[#1b2138] to-[#10142a] flex flex-col items-center justify-center gap-[2px] shrink-0 shadow-[0_8px_20px_-8px_rgba(16,20,42,0.6)] ring-1 ring-white/10`}>
       <SquareTerminal className={`${icon} text-amber-400`} strokeWidth={2.4} />
-      <span className={`${text} font-extrabold tracking-[0.18em] text-amber-400 leading-none`}>SRS</span>
+      <span className={`${text} font-extrabold tracking-[0.18em] text-amber-400 leading-none`}>SL</span>
     </span>
   );
 };

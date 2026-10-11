@@ -21,7 +21,7 @@ export const ProcessSection: React.FC = () => {
             <p className="text-xs font-bold uppercase tracking-[0.2em] text-emerald-700 mb-3">How it works</p>
             <h2 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-stone-900">From message to launch in days</h2>
           </div>
-          <a href={waLink(siteSettings.whatsappNumber, 'Hello SRS Digital Labs! I need a website. Please share a free quote.')} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 text-sm font-semibold text-stone-900 underline underline-offset-4 shrink-0">
+          <a href={waLink(siteSettings.whatsappNumber, 'Hello Sairah Labs! I need a website. Please share a free quote.')} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 text-sm font-semibold text-stone-900 underline underline-offset-4 shrink-0">
             Get free quote <ArrowRight className="w-4 h-4" />
           </a>
         </div>

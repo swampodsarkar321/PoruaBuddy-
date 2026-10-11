@@ -65,7 +65,7 @@ export const OrderSuccessModal: React.FC = () => {
         </h3>
         <p className="text-xs text-slate-400 max-w-sm mx-auto mb-6 leading-relaxed">
           Thank you, <strong>{orderSuccess.customerName}</strong>. Your payment details have been recorded
-          and queued for manual verification by SRS Digital Labs.
+          and queued for manual verification by Sairah Labs.
         </p>
 
         {/* Order Reference Box */}
@@ -118,7 +118,7 @@ export const OrderSuccessModal: React.FC = () => {
           </button>
 
           <a
-            href={`https://wa.me/${siteSettings.whatsappNumber.replace(/[^0-9]/g, '')}?text=Hello%20SRS%20Studio,%20I%20just%20placed%20order%20${encodeURIComponent(orderSuccess.id)}%20with%20TrxID%20${encodeURIComponent(orderSuccess.transactionId)}.%20Please%20verify.`}
+            href={`https://wa.me/${siteSettings.whatsappNumber.replace(/[^0-9]/g, '')}?text=Hello%20Sairah%20Labs,%20I%20just%20placed%20order%20${encodeURIComponent(orderSuccess.id)}%20with%20TrxID%20${encodeURIComponent(orderSuccess.transactionId)}.%20Please%20verify.`}
             target="_blank"
             rel="noopener noreferrer"
             className="w-full py-3 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-800 text-xs font-semibold text-emerald-400 flex items-center justify-center gap-2 transition"

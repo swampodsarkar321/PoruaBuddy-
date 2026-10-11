@@ -24,7 +24,7 @@ export const Navbar: React.FC = () => {
           <button onClick={() => go('home')} className="flex items-center gap-3">
             <Logo size="md" />
             <span className="text-left leading-tight">
-              <span className="block font-extrabold tracking-tight text-stone-900 text-[17px]">SRS Digital Labs</span>
+              <span className="block font-extrabold tracking-tight text-stone-900 text-[17px]">Sairah Labs</span>
               <span className="block text-[11px] font-medium text-stone-400 tracking-wide">Digital Agency • Bangladesh</span>
             </span>
           </button>
@@ -37,7 +37,7 @@ export const Navbar: React.FC = () => {
           ))}
         </nav>
         <div className="flex items-center gap-2">
-            <a href={waLink(siteSettings.whatsappNumber, 'Hello SRS Digital Labs! I need a website. Please share a free quote.')} target="_blank" rel="noopener noreferrer" className="hidden md:flex items-center gap-1.5 px-4 py-2 rounded-full bg-stone-900 text-white text-sm font-semibold hover:bg-stone-700 transition">
+            <a href={waLink(siteSettings.whatsappNumber, 'Hello Sairah Labs! I need a website. Please share a free quote.')} target="_blank" rel="noopener noreferrer" className="hidden md:flex items-center gap-1.5 px-4 py-2 rounded-full bg-stone-900 text-white text-sm font-semibold hover:bg-stone-700 transition">
               Get free quote
             </a>
           <button onClick={() => setIsCartOpen(true)} className="relative w-9 h-9 rounded-full border border-stone-200 bg-white flex items-center justify-center text-stone-500 hover:border-stone-900 hover:text-stone-900 transition">

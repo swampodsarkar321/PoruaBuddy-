@@ -5,7 +5,7 @@ import { Reveal } from './Reveal';
 export const FAQS = [
   {
     q: 'How much does website design cost in Bangladesh?',
-    a: 'Business websites start from ৳3,500 and e-commerce stores from ৳5,500 at SRS Digital Labs. Every package includes mobile-first design, WhatsApp ordering, basic SEO and free revisions — no hidden charges.',
+    a: 'Business websites start from ৳3,500 and e-commerce stores from ৳5,500 at Sairah Labs. Every package includes mobile-first design, WhatsApp ordering, basic SEO and free revisions — no hidden charges.',
   },
   {
     q: 'How long does it take to build a website in Dhaka?',

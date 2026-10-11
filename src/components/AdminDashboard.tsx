@@ -193,7 +193,7 @@ export const AdminDashboard: React.FC = () => {
           <div>
             <div className="flex items-center gap-2">
               <h2 className="text-xl sm:text-2xl font-black text-white">
-                SRS Digital Labs Admin Control
+                Sairah Labs Admin Control
               </h2>
               <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-purple-900 text-purple-200 uppercase font-mono">
                 {demoAdminMode ? 'Demo Admin' : 'Super Admin'}
@@ -610,7 +610,7 @@ export const AdminDashboard: React.FC = () => {
                     </select>
 
                     <a
-                      href={`https://wa.me/${inq.phone.replace(/[^0-9]/g, '')}?text=Hello%20${encodeURIComponent(inq.name)},%20this%20is%20Swampod%20from%20SRS%20Web%20Studio%20regarding%20your%20inquiry`}
+                      href={`https://wa.me/${inq.phone.replace(/[^0-9]/g, '')}?text=Hello%20${encodeURIComponent(inq.name)},%20this%20is%20Swampod%20from%20Sairah%20Labs%20regarding%20your%20inquiry`}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="p-2 rounded-lg bg-emerald-950 hover:bg-emerald-900 text-emerald-400 text-xs font-bold flex items-center gap-1 border border-emerald-800"
@@ -787,7 +787,7 @@ export const AdminDashboard: React.FC = () => {
                 </label>
                 <input
                   type="text"
-                  placeholder="SRS-KEY-XXXX-YYYY, SRS-PRO-ZZZZ"
+                  placeholder="SL-KEY-XXXX-YYYY, SL-PRO-ZZZZ"
                   value={licenseKeyInput}
                   onChange={(e) => setLicenseKeyInput(e.target.value)}
                   className="w-full p-2.5 text-xs rounded-xl bg-slate-900 border border-slate-700 text-white font-mono uppercase"

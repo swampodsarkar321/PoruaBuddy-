@@ -15,7 +15,7 @@ export const Footer: React.FC = () => {
           <div className="flex items-center gap-3 mb-3">
             <Logo size="md" />
             <span>
-              <span className="block font-extrabold tracking-tight text-stone-900 text-[17px] leading-tight">SRS Digital Labs Bangladesh</span>
+              <span className="block font-extrabold tracking-tight text-stone-900 text-[17px] leading-tight">Sairah Labs Bangladesh Bangladesh</span>
               <span className="block text-[11px] font-medium text-stone-400 tracking-wide">Digital Agency • Websites • Stores • AI Bots</span>
             </span>
           </div>
@@ -33,7 +33,7 @@ export const Footer: React.FC = () => {
               className="w-9 h-9 rounded-full bg-stone-100 hover:bg-[#1877f2] hover:text-white text-stone-500 flex items-center justify-center transition">
               <FacebookIcon className="w-4 h-4" />
             </a>
-            <a href={waLink(siteSettings.whatsappNumber, 'Hello SRS Digital Labs! I need a website. Please share a free quote.')} target="_blank" rel="noopener noreferrer" className="ml-2 flex items-center gap-1.5 px-5 py-2.5 rounded-full bg-stone-900 text-white text-sm font-semibold hover:bg-stone-700 transition">
+            <a href={waLink(siteSettings.whatsappNumber, 'Hello Sairah Labs Bangladesh! I need a website. Please share a free quote.')} target="_blank" rel="noopener noreferrer" className="ml-2 flex items-center gap-1.5 px-5 py-2.5 rounded-full bg-stone-900 text-white text-sm font-semibold hover:bg-stone-700 transition">
               Get free quote <ArrowRight className="w-3.5 h-3.5" />
             </a>
           </div>
@@ -56,7 +56,7 @@ export const Footer: React.FC = () => {
           </div>
         </div>
       </div>
-      <div className="border-t border-stone-100 py-5 text-center text-xs text-stone-400">© {new Date().getFullYear()} SRS Digital Labs Bangladesh • Crafted by Swampod</div>
+      <div className="border-t border-stone-100 py-5 text-center text-xs text-stone-400">© {new Date().getFullYear()} Sairah Labs Bangladesh Bangladesh • Crafted by Swampod</div>
     </footer>
   );
 };
