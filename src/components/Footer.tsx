@@ -15,8 +15,8 @@ export const Footer: React.FC = () => {
           <div className="flex items-center gap-3 mb-3">
             <Logo size="md" />
             <span>
-              <span className="block font-extrabold tracking-tight text-stone-900 text-[17px] leading-tight">SRS Digital Labs</span>
-              <span className="block text-[11px] font-medium text-stone-400 tracking-wide">Websites • Stores • AI Bots</span>
+              <span className="block font-extrabold tracking-tight text-stone-900 text-[17px] leading-tight">SRS Digital Labs Bangladesh</span>
+              <span className="block text-[11px] font-medium text-stone-400 tracking-wide">Digital Agency • Websites • Stores • AI Bots</span>
             </span>
           </div>
           <p className="text-sm text-stone-500 max-w-xs mb-5">Websites, stores & AI chatbots for Bangladeshi brands. Order easily on WhatsApp.</p>
@@ -55,7 +55,7 @@ export const Footer: React.FC = () => {
           </div>
         </div>
       </div>
-      <div className="border-t border-stone-100 py-5 text-center text-xs text-stone-400">© {new Date().getFullYear()} SRS Digital Labs • Crafted by Swampod in Bangladesh</div>
+      <div className="border-t border-stone-100 py-5 text-center text-xs text-stone-400">© {new Date().getFullYear()} SRS Digital Labs Bangladesh • Crafted by Swampod</div>
     </footer>
   );
 };

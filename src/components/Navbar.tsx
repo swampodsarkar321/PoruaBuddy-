@@ -24,7 +24,7 @@ export const Navbar: React.FC = () => {
             <Logo size="md" />
             <span className="text-left leading-tight">
               <span className="block font-extrabold tracking-tight text-stone-900 text-[17px]">SRS Digital Labs</span>
-              <span className="block text-[11px] font-medium text-stone-400 tracking-wide">Websites • Stores • AI Bots</span>
+              <span className="block text-[11px] font-medium text-stone-400 tracking-wide">Digital Agency • Bangladesh</span>
             </span>
           </button>
         <nav className="hidden md:flex items-center gap-1 bg-stone-200/50 rounded-full p-1">
