@@ -167,20 +167,6 @@ const MainContent: React.FC = () => {
         {activeTab === 'rtdb-admin' && <RtdbAdminPanel />}
       </main>
 
-      {/* Floating WhatsApp Action Button */}
-      <a
-        href={`https://wa.me/${siteSettings.whatsappNumber.replace(/[^0-9]/g, '')}?text=Hello%20Sairah%20Labs,%20I%20have%20an%20inquiry`}
-        target="_blank"
-        rel="noopener noreferrer"
-        className="fixed bottom-6 right-6 z-40 flex items-center gap-2.5 pl-3 pr-4 py-2.5 rounded-full bg-white border border-stone-200 font-bold text-xs text-stone-900 shadow-[0_16px_40px_-12px_rgba(28,25,23,0.35)] transition transform hover:scale-105 hover:border-emerald-500"
-        title="Chat on WhatsApp with Swampod"
-      >
-        <span className="w-8 h-8 rounded-full bg-[#25d366] flex items-center justify-center">
-          <WhatsAppIcon className="w-4.5 h-4.5 text-white" />
-        </span>
-        <span className="hidden sm:inline">WhatsApp Support</span>
-      </a>
-
       {/* Slide-overs & Modals */}
       <CartDrawer />
       <ProductDetailModal />
