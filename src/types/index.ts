@@ -100,8 +100,7 @@ export interface SiteSettings {
   updatedAt?: string;
 }
 
-export interface WebDevServiceItem {
-  id: string;
+export interface WebDevServiceItem {  id: string;
   title: string;
   description: string;
   startingPriceBDT: number;
@@ -112,4 +111,21 @@ export interface WebDevServiceItem {
   includesDomainSetup: boolean;
   revisions: number;
   badge?: string;
+}
+
+export interface Testimonial {
+  id: string;
+  name: string;
+  role: string;
+  quote: string;
+  createdAt: string;
+}
+
+export interface PortfolioItem {
+  id: string;
+  title: string;
+  category: string;
+  description: string;
+  stat: string;
+  createdAt: string;
 }

@@ -11,7 +11,7 @@ import {
   remove,
   update,
 } from 'firebase/database';
-import type { Product, Inquiry, Order, SiteSettings } from '../types';
+import type { Product, Inquiry, Order, SiteSettings, Testimonial, PortfolioItem } from '../types';
 
 // Single Firebase project — chat-2-me-c3213 (Realtime Database + Auth).
 // Old Firestore project is fully removed.
@@ -40,6 +40,8 @@ export const rtdbSettingsRef = () => ref(rtdb, 'settings/main');
 export const rtdbInquiriesRef = () => ref(rtdb, 'inquiries');
 export const rtdbOrdersRef = () => ref(rtdb, 'orders');
 export const rtdbOrderRef = (id: string) => ref(rtdb, `orders/${id}`);
+export const rtdbTestimonialsRef = () => ref(rtdb, 'testimonials');
+export const rtdbPortfolioRef = () => ref(rtdb, 'portfolio');
 
 // ---- Converters ----
 export const snapToProducts = (val: unknown): Product[] => {
@@ -58,6 +60,16 @@ export const snapToInquiries = (val: unknown): Inquiry[] => {
   if (!val || typeof val !== 'object') return [];
   const list = Object.entries(val as Record<string, Inquiry>).map(([id, q]) => ({ ...q, id }));
   return list.sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || ''));
+};
+
+export const snapToTestimonials = (val: unknown): Testimonial[] => {
+  if (!val || typeof val !== 'object') return [];
+  return Object.entries(val as Record<string, Testimonial>).map(([id, t]) => ({ ...t, id }));
+};
+
+export const snapToPortfolio = (val: unknown): PortfolioItem[] => {
+  if (!val || typeof val !== 'object') return [];
+  return Object.entries(val as Record<string, PortfolioItem>).map(([id, p]) => ({ ...p, id }));
 };
 
 // ---- Products ----
@@ -90,5 +102,11 @@ export const deleteInquiryRTDB = (id: string) => remove(ref(rtdb, `inquiries/${i
 // ---- Settings ----
 export const saveSettingsRTDB = (settings: Partial<SiteSettings>) =>
   update(rtdbSettingsRef(), { ...settings, updatedAt: new Date().toISOString() });
+
+// ---- Content (testimonials + portfolio) ----
+export const saveTestimonialRTDB = (t: Testimonial) => set(ref(rtdb, `testimonials/${t.id}`), t);
+export const deleteTestimonialRTDB = (id: string) => remove(ref(rtdb, `testimonials/${id}`));
+export const savePortfolioRTDB = (p: PortfolioItem) => set(ref(rtdb, `portfolio/${p.id}`), p);
+export const deletePortfolioRTDB = (id: string) => remove(ref(rtdb, `portfolio/${id}`));
 
 export { onValue };

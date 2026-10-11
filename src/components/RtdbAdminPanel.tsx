@@ -2,23 +2,34 @@ import React, { useEffect, useState } from 'react';
 import { useApp } from '../context/AppContext';
 import { signInWithEmailAndPassword, signOut } from 'firebase/auth';
 import { auth } from '../firebase/rtdb';
-import { Product, ProductCategory, Inquiry, Order } from '../types';
+import { Product, ProductCategory, Inquiry, Testimonial, PortfolioItem } from '../types';
 import {
   rtdbProductsRef,
   rtdbInquiriesRef,
   rtdbOrdersRef,
-  rtdbSettingsRef,
+  rtdbTestimonialsRef,
+  rtdbPortfolioRef,
   snapToProducts,
   snapToOrders,
+  snapToTestimonials,
+  snapToPortfolio,
   saveProductRTDB,
   deleteProductRTDB,
   updateOrderRTDB,
   deleteOrderRTDB,
   saveSettingsRTDB,
   deleteInquiryRTDB,
+  saveTestimonialRTDB,
+  deleteTestimonialRTDB,
+  savePortfolioRTDB,
+  deletePortfolioRTDB,
   onValue,
 } from '../firebase/rtdb';
-import { Plus, Trash2, Pencil, X, Check, Database, ShoppingBag, MessagesSquare, Settings2, Package } from 'lucide-react';
+import {
+  Plus, Trash2, Pencil, X, Check, Database, ShoppingBag, MessagesSquare,
+  Settings2, Package, LayoutDashboard, Star, Briefcase, ArrowRight, LogOut,
+} from 'lucide-react';
+import { Order } from '../types';
 
 const ADMIN_EMAIL = 'mdswampodsarkar@gmail.com';
 
@@ -48,87 +59,73 @@ const emptyProduct = (): Product => ({
   createdAt: new Date().toISOString(),
 });
 
-const inputCls = "w-full px-4 py-2.5 rounded-xl bg-white border border-stone-200 text-sm text-stone-900 placeholder-stone-400 outline-none focus:border-stone-900 shadow-sm";
+const inputCls = "w-full px-4 py-2.5 rounded-xl bg-white border border-stone-200 text-sm text-stone-900 placeholder-stone-400 outline-none focus:border-stone-900 focus:ring-2 focus:ring-stone-900/10 shadow-sm";
 
-const AdminLogin: React.FC<{ onDone: () => void }> = () => {
-  const { showToast } = useApp();
-  const [email, setEmail] = useState(ADMIN_EMAIL);
-  const [password, setPassword] = useState('');
-  const [busy, setBusy] = useState(false);
-
-  const login = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (email.trim().toLowerCase() !== ADMIN_EMAIL) {
-      showToast('This email is not authorized for admin access', 'error');
-      return;
-    }
-    setBusy(true);
-    try {
-      await signInWithEmailAndPassword(auth, email.trim(), password);
-      showToast('Welcome back, Admin', 'success');
-    } catch {
-      try { await signOut(auth); } catch {}
-      showToast('Wrong password or account not found. Create the user in Firebase Console first.', 'error');
-    } finally {
-      setBusy(false);
-    }
-  };
-
-  return (
-    <div className="bg-transparent">
-      <section className="max-w-md mx-auto px-5 py-20">
-        <div className="rounded-[2rem] bg-white border border-stone-200 shadow-xl p-8 text-center">
-          <span className="w-14 h-14 rounded-3xl bg-stone-900 text-white flex items-center justify-center mx-auto mb-5">
-            <Database className="w-6 h-6" />
-          </span>
-          <h2 className="text-2xl font-extrabold tracking-tight text-stone-900 mb-1">DB Admin Login</h2>
-          <p className="text-sm text-stone-500 mb-6">Only the admin email can sign in here.</p>
-          <form onSubmit={login} className="space-y-3 text-left">
-            <input value={email} onChange={(e) => setEmail(e.target.value)} placeholder="Admin email" className={inputCls} />
-            <input value={password} onChange={(e) => setPassword(e.target.value)} type="password" placeholder="Password" className={inputCls} />
-            <button type="submit" disabled={busy} className="w-full py-3.5 rounded-xl bg-stone-900 text-white text-sm font-bold hover:bg-stone-700 disabled:opacity-50">
-              {busy ? 'Signing in...' : 'Login to admin panel'}
-            </button>
-          </form>
-        </div>
-      </section>
-    </div>
-  );
-};
+type Tab = 'dashboard' | 'products' | 'orders' | 'inbox' | 'content' | 'settings';
 
 export const RtdbAdminPanel: React.FC = () => {
-  const { user, showToast, siteSettings } = useApp();
+  const { user, showToast, siteSettings, setActiveTab } = useApp();
   const isAllowed = user?.email?.toLowerCase() === ADMIN_EMAIL;
-  const [tab, setTab] = useState<'products' | 'orders' | 'inquiries' | 'settings'>('products');
+
+  const [tab, setTab] = useState<Tab>('dashboard');
   const [items, setItems] = useState<Product[]>([]);
   const [inquiries, setInquiries] = useState<Inquiry[]>([]);
   const [orders, setOrders] = useState<Order[]>([]);
+  const [testimonials, setTestimonials] = useState<Testimonial[]>([]);
+  const [portfolio, setPortfolio] = useState<PortfolioItem[]>([]);
   const [editing, setEditing] = useState<Product | null>(null);
   const [featText, setFeatText] = useState('');
   const [waNumber, setWaNumber] = useState('');
   const [heroNotice, setHeroNotice] = useState('');
+  const [contentMode, setContentMode] = useState<'reviews' | 'work'>('reviews');
+  const [tName, setTName] = useState('');
+  const [tRole, setTRole] = useState('');
+  const [tQuote, setTQuote] = useState('');
+  const [pTitle, setPTitle] = useState('');
+  const [pCat, setPCat] = useState('');
+  const [pDesc, setPDesc] = useState('');
+  const [pStat, setPStat] = useState('');
 
   useEffect(() => {
-    const off1 = onValue(rtdbProductsRef(), (snap) => setItems(snapToProducts(snap.val())), () => {});
-    const off2 = onValue(rtdbInquiriesRef(), (snap) => {
-      const val = snap.val();
-      if (val && typeof val === 'object') {
-        const list = Object.entries(val as Record<string, Inquiry>).map(([id, q]) => ({ ...q, id }));
-        setInquiries(list.reverse());
-      } else setInquiries([]);
-    }, () => {});
-    const off3 = onValue(rtdbOrdersRef(), (snap) => setOrders(snapToOrders(snap.val())), () => {});
-    return () => { off1(); off2(); off3(); };
-  }, []);
+    if (!isAllowed) return;
+    const offs = [
+      onValue(rtdbProductsRef(), (s) => setItems(snapToProducts(s.val())), () => {}),
+      onValue(rtdbInquiriesRef(), (s) => {
+        const v = s.val();
+        setInquiries(v && typeof v === 'object'
+          ? Object.entries(v as Record<string, Inquiry>).map(([id, q]) => ({ ...q, id })).reverse()
+          : []);
+      }, () => {}),
+      onValue(rtdbOrdersRef(), (s) => setOrders(snapToOrders(s.val())), () => {}),
+      onValue(rtdbTestimonialsRef(), (s) => setTestimonials(snapToTestimonials(s.val())), () => {}),
+      onValue(rtdbPortfolioRef(), (s) => setPortfolio(snapToPortfolio(s.val())), () => {}),
+    ];
+    return () => offs.forEach((o) => o());
+  }, [isAllowed]);
 
   useEffect(() => {
     setWaNumber(siteSettings.whatsappNumber || '');
     setHeroNotice((siteSettings as { heroNotice?: string }).heroNotice || '');
   }, [siteSettings]);
 
-  if (!isAllowed) {
-    return <AdminLogin onDone={() => {}} />;
-  }
+  if (!isAllowed) return <AdminLogin />;
+
+  const revenue = orders.filter((o) => ['Paid', 'Completed'].includes(o.paymentStatus)).reduce((s, o) => s + (o.totalAmountBDT || 0), 0);
+  const stats = [
+    { label: 'Products live', value: items.filter((p) => p.isPublished).length, sub: `${items.length} total`, icon: ShoppingBag },
+    { label: 'Orders', value: orders.length, sub: `৳${revenue.toLocaleString()} collected`, icon: Package },
+    { label: 'Inbox leads', value: inquiries.length, sub: 'contact + chatbot', icon: MessagesSquare },
+    { label: 'Reviews live', value: testimonials.length, sub: `${portfolio.length} work items`, icon: Star },
+  ];
+
+  const TABS: Array<{ id: Tab; label: string; icon: typeof Database; badge?: number }> = [
+    { id: 'dashboard', label: 'Overview', icon: LayoutDashboard },
+    { id: 'products', label: 'Products', icon: ShoppingBag },
+    { id: 'orders', label: 'Orders', icon: Package, badge: orders.length },
+    { id: 'inbox', label: 'Inbox', icon: MessagesSquare, badge: inquiries.length },
+    { id: 'content', label: 'Content', icon: Star },
+    { id: 'settings', label: 'Settings', icon: Settings2 },
+  ];
 
   const startNew = () => { setEditing(emptyProduct()); setFeatText(''); };
   const startEdit = (p: Product) => { setEditing({ ...p }); setFeatText((p.features || []).join('\n')); };
@@ -136,70 +133,119 @@ export const RtdbAdminPanel: React.FC = () => {
   const save = async () => {
     if (!editing || !editing.name.trim()) { showToast('Product name required', 'error'); return; }
     const cat = CATS.find((c) => c.id === editing.category);
-    const toSave: Product = {
+    await saveProductRTDB({
       ...editing,
       slug: editing.slug || editing.name.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
       categoryLabel: cat?.label || editing.categoryLabel,
       features: featText.split('\n').map((s) => s.trim()).filter(Boolean),
       priceBDT: Number(editing.priceBDT) || 0,
       discountPriceBDT: editing.discountPriceBDT ? Number(editing.discountPriceBDT) : undefined,
-    };
-    try {
-      await saveProductRTDB(toSave);
-      showToast('Saved to Realtime Database', 'success');
-      setEditing(null);
-    } catch {
-      showToast('Save failed — check RTDB rules', 'error');
-    }
+    }).then(() => { showToast('Saved — live on site instantly', 'success'); setEditing(null); })
+      .catch(() => showToast('Save failed — check RTDB rules', 'error'));
   };
 
   return (
-    <div className="bg-transparent">
-      <section className="max-w-6xl mx-auto px-5 py-12">
-        <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
-          <div>
-            <p className="text-xs font-bold uppercase tracking-[0.2em] text-emerald-700 mb-1 flex items-center gap-1.5">
-              <Database className="w-3.5 h-3.5" /> Realtime Database • chat-2-me-c3213
-            </p>
-            <h2 className="text-3xl font-extrabold tracking-tight text-stone-900">DB Admin Panel</h2>
-            <button onClick={async () => { await signOut(auth); showToast('Signed out', 'info'); }} className="text-xs font-semibold text-stone-400 hover:text-rose-600 underline underline-offset-4">
-              Logout ({user?.email})
-            </button>
+    <div className="min-h-screen bg-gradient-to-b from-stone-100 via-[#fafaf9] to-[#fafaf9]">
+      <section className="max-w-6xl mx-auto px-5 py-10">
+        {/* Header */}
+        <div className="relative overflow-hidden rounded-[1.75rem] bg-stone-900 text-white p-7 sm:p-9 mb-6">
+          <div className="absolute -top-24 -right-24 w-72 h-72 rounded-full bg-emerald-500/25 blur-3xl pointer-events-none" />
+          <div className="relative flex flex-wrap items-center justify-between gap-4">
+            <div className="flex items-center gap-3.5">
+              <span className="w-12 h-12 rounded-2xl bg-white/10 border border-white/15 flex items-center justify-center">
+                <Database className="w-5 h-5 text-emerald-300" />
+              </span>
+              <div>
+                <h2 className="text-xl sm:text-2xl font-extrabold tracking-tight">Sairah Labs — Admin</h2>
+                <p className="text-xs text-stone-400 flex items-center gap-1.5">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" /> Realtime Database connected
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              <button onClick={() => setActiveTab('home')} className="flex items-center gap-1.5 px-4 py-2 rounded-full bg-white/10 border border-white/15 text-xs font-semibold hover:bg-white/20 transition">
+                View site <ArrowRight className="w-3.5 h-3.5" />
+              </button>
+              <button onClick={async () => { await signOut(auth); showToast('Signed out', 'info'); }} className="flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-semibold text-stone-400 hover:text-white transition">
+                <LogOut className="w-3.5 h-3.5" /> Logout
+              </button>
+            </div>
           </div>
-          <div className="flex gap-2 bg-white border border-stone-200 rounded-full p-1">
-            {([
-              { id: 'products', label: 'Products', icon: ShoppingBag },
-              { id: 'orders', label: 'Orders', icon: Package },
-              { id: 'inquiries', label: 'Inbox • Live', icon: MessagesSquare },
-              { id: 'settings', label: 'Settings', icon: Settings2 },
-            ] as const).map((t) => (
+          {/* Tabs */}
+          <div className="relative flex gap-1.5 mt-6 overflow-x-auto scrollbar-none">
+            {TABS.map((t) => (
               <button key={t.id} onClick={() => setTab(t.id)}
-                className={`flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-semibold transition ${tab === t.id ? 'bg-stone-900 text-white' : 'text-stone-500 hover:text-stone-900'}`}>
+                className={`flex items-center gap-1.5 px-4 py-2 rounded-full text-[13px] font-semibold whitespace-nowrap transition ${tab === t.id ? 'bg-white text-stone-900 shadow' : 'text-stone-400 hover:text-white hover:bg-white/10'}`}>
                 <t.icon className="w-3.5 h-3.5" /> {t.label}
-                {t.id === 'inquiries' && inquiries.length > 0 && (
-                  <span className="min-w-5 h-5 px-1 rounded-full bg-emerald-500 text-white text-[10px] font-bold flex items-center justify-center">{inquiries.length}</span>
-                )}
+                {!!t.badge && <span className="min-w-5 h-5 px-1 rounded-full bg-emerald-500 text-white text-[10px] font-bold flex items-center justify-center">{t.badge}</span>}
               </button>
             ))}
           </div>
         </div>
 
+        {/* DASHBOARD */}
+        {tab === 'dashboard' && (
+          <div className="space-y-4">
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+              {stats.map((s) => (
+                <div key={s.label} className="rounded-3xl bg-white border border-stone-200 p-5 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition">
+                  <s.icon className="w-5 h-5 text-emerald-700 mb-3" />
+                  <p className="text-2xl font-extrabold text-stone-900">{s.value}</p>
+                  <p className="text-xs font-semibold text-stone-900 mt-0.5">{s.label}</p>
+                  <p className="text-[11px] text-stone-400">{s.sub}</p>
+                </div>
+              ))}
+            </div>
+            <div className="grid md:grid-cols-2 gap-4">
+              <div className="rounded-3xl bg-white border border-stone-200 p-6 shadow-sm">
+                <h4 className="font-bold text-stone-900 text-sm mb-4">Quick actions</h4>
+                <div className="grid grid-cols-2 gap-2.5">
+                  {[
+                    { label: 'Add product', fn: () => { startNew(); setTab('products'); } },
+                    { label: 'Add review', fn: () => { setContentMode('reviews'); setTab('content'); } },
+                    { label: 'Add work', fn: () => { setContentMode('work'); setTab('content'); } },
+                    { label: 'Edit settings', fn: () => setTab('settings') },
+                  ].map((a) => (
+                    <button key={a.label} onClick={a.fn} className="px-4 py-3 rounded-2xl bg-stone-50 border border-stone-200 text-[13px] font-semibold text-stone-700 hover:border-stone-900 hover:bg-white transition text-left">
+                      {a.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              <div className="rounded-3xl bg-white border border-stone-200 p-6 shadow-sm">
+                <h4 className="font-bold text-stone-900 text-sm mb-4">Latest inbox</h4>
+                {inquiries.length === 0 ? (
+                  <p className="text-sm text-stone-400">No messages yet.</p>
+                ) : (
+                  <div className="space-y-2.5">
+                    {inquiries.slice(0, 3).map((q) => (
+                      <button key={q.id} onClick={() => setTab('inbox')} className="w-full text-left p-3.5 rounded-2xl bg-stone-50 border border-stone-100 hover:border-stone-300 transition">
+                        <p className="text-[13px] font-bold text-stone-900">{q.name} <span className="font-normal text-stone-400">• {q.serviceType}</span></p>
+                        <p className="text-xs text-stone-500 truncate mt-0.5">{q.message}</p>
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* PRODUCTS */}
         {tab === 'products' && (
           <>
-            <button onClick={startNew} className="flex items-center gap-1.5 px-5 py-2.5 rounded-full bg-stone-900 text-white text-sm font-bold hover:bg-stone-700 mb-5">
+            <button onClick={startNew} className="flex items-center gap-1.5 px-5 py-2.5 rounded-full bg-stone-900 text-white text-sm font-bold hover:bg-stone-700 mb-5 shadow">
               <Plus className="w-4 h-4" /> Add product
             </button>
             {items.length === 0 ? (
-              <div className="py-16 text-center rounded-3xl bg-white border border-dashed border-stone-300 text-sm text-stone-400">
-                No products in Realtime Database yet — add your first one. Site falls back to old catalog until then.
-              </div>
+              <EmptyBox text="No products yet — add your first one. Shop section stays hidden on site until then." />
             ) : (
               <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 {items.map((p) => (
-                  <div key={p.id} className="rounded-3xl bg-white border border-stone-200 p-5">
+                  <div key={p.id} className="rounded-3xl bg-white border border-stone-200 p-5 shadow-sm hover:shadow-md transition">
                     <div className="flex items-start justify-between gap-2 mb-2">
-                      <span className={`text-[11px] font-bold px-2 py-0.5 rounded-full ${p.isPublished ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-stone-100 text-stone-500 border border-stone-200'}`}>
-                        {p.isPublished ? 'Published' : 'Hidden'}
+                      <span className={`text-[11px] font-bold px-2 py-0.5 rounded-full border ${p.isPublished ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-stone-100 text-stone-500 border-stone-200'}`}>
+                        {p.isPublished ? '● Live' : '○ Hidden'}
                       </span>
                       <div className="flex gap-1">
                         <button onClick={() => startEdit(p)} className="p-2 rounded-lg text-stone-400 hover:text-stone-900 hover:bg-stone-100" title="Edit"><Pencil className="w-4 h-4" /></button>
@@ -216,13 +262,12 @@ export const RtdbAdminPanel: React.FC = () => {
           </>
         )}
 
+        {/* ORDERS */}
         {tab === 'orders' && (
           <div className="space-y-3">
-            {orders.length === 0 && (
-              <div className="py-16 text-center rounded-3xl bg-white border border-dashed border-stone-300 text-sm text-stone-400">No orders yet — WhatsApp orders can be recorded here.</div>
-            )}
+            {orders.length === 0 && <EmptyBox text="No orders yet." />}
             {orders.map((o) => (
-              <div key={o.id} className="rounded-2xl bg-white border border-stone-200 p-5">
+              <div key={o.id} className="rounded-2xl bg-white border border-stone-200 p-5 shadow-sm">
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <div>
                     <p className="font-bold text-stone-900 text-sm">{o.customerName || 'Guest'} <span className="font-normal text-stone-400">• {o.customerPhone}</span></p>
@@ -242,19 +287,21 @@ export const RtdbAdminPanel: React.FC = () => {
           </div>
         )}
 
-        {tab === 'inquiries' && (
+        {/* INBOX */}
+        {tab === 'inbox' && (
           <div className="space-y-3">
-            {inquiries.length === 0 && (
-              <div className="py-16 text-center rounded-3xl bg-white border border-dashed border-stone-300 text-sm text-stone-400">Inbox empty — new contact/chatbot leads appear here.</div>
-            )}
+            {inquiries.length === 0 && <EmptyBox text="Inbox empty — contact form + chatbot leads appear here live." />}
             {inquiries.map((q) => (
-              <div key={q.id} className="rounded-2xl bg-white border border-stone-200 p-5">
+              <div key={q.id} className="rounded-2xl bg-white border border-stone-200 p-5 shadow-sm">
                 <div className="flex items-start justify-between gap-3">
-                  <div>
+                  <div className="flex-1">
                     <p className="font-bold text-stone-900 text-sm">{q.name} <span className="font-normal text-stone-400">• {q.phone}</span></p>
                     <p className="text-xs text-emerald-700 font-semibold mt-0.5">{q.serviceType}</p>
-                    <p className="text-sm text-stone-600 mt-2">{q.message}</p>
-                    <p className="text-[11px] text-stone-400 mt-1">{new Date(q.createdAt).toLocaleString()}</p>
+                    <p className="text-sm text-stone-600 mt-2 leading-relaxed">{q.message}</p>
+                    <p className="text-[11px] text-stone-400 mt-1.5">{new Date(q.createdAt).toLocaleString()}</p>
+                    <a href={`https://wa.me/${q.phone.replace(/[^0-9]/g, '')}`} target="_blank" rel="noopener noreferrer" className="inline-block mt-2.5 px-4 py-2 rounded-full bg-[#25d366] text-white text-xs font-bold hover:bg-[#1eb85a]">
+                      Reply on WhatsApp
+                    </a>
                   </div>
                   <button onClick={async () => { await deleteInquiryRTDB(q.id); }} className="p-2 rounded-lg text-stone-300 hover:text-rose-600 hover:bg-rose-50 shrink-0" title="Delete"><Trash2 className="w-4 h-4" /></button>
                 </div>
@@ -263,6 +310,85 @@ export const RtdbAdminPanel: React.FC = () => {
           </div>
         )}
 
+        {/* CONTENT */}
+        {tab === 'content' && (
+          <div className="space-y-6">
+            <div className="flex gap-2">
+              {(['reviews', 'work'] as const).map((m) => (
+                <button key={m} onClick={() => setContentMode(m)}
+                  className={`px-5 py-2.5 rounded-full text-sm font-bold transition ${contentMode === m ? 'bg-stone-900 text-white shadow' : 'bg-white border border-stone-200 text-stone-500 hover:text-stone-900'}`}>
+                  {m === 'reviews' ? `Reviews (${testimonials.length})` : `Work (${portfolio.length})`}
+                </button>
+              ))}
+            </div>
+
+            {contentMode === 'reviews' && (
+              <div className="grid lg:grid-cols-5 gap-4">
+                <div className="lg:col-span-2 rounded-3xl bg-white border border-stone-200 p-6 shadow-sm h-fit">
+                  <h4 className="font-bold text-stone-900 text-sm mb-4">Add client review</h4>
+                  <div className="space-y-3">
+                    <input value={tName} onChange={(e) => setTName(e.target.value)} placeholder="Client name *" className={inputCls} />
+                    <input value={tRole} onChange={(e) => setTRole(e.target.value)} placeholder="Role (e.g. Boutique owner • Dhaka)" className={inputCls} />
+                    <textarea value={tQuote} onChange={(e) => setTQuote(e.target.value)} rows={4} placeholder="Review text *" className={`${inputCls} resize-none`} />
+                    <button onClick={async () => {
+                      if (!tName.trim() || !tQuote.trim()) { showToast('Name + review required', 'error'); return; }
+                      await saveTestimonialRTDB({ id: `tst-${Date.now().toString(36)}`, name: tName.trim(), role: tRole.trim(), quote: tQuote.trim(), createdAt: new Date().toISOString() });
+                      setTName(''); setTRole(''); setTQuote('');
+                      showToast('Review live on site', 'success');
+                    }} className="w-full py-3 rounded-xl bg-stone-900 text-white text-sm font-bold hover:bg-stone-700">Publish review</button>
+                  </div>
+                </div>
+                <div className="lg:col-span-3 space-y-3">
+                  {testimonials.length === 0 && <EmptyBox text="No reviews — homepage section hidden until you add one." />}
+                  {testimonials.map((t) => (
+                    <div key={t.id} className="rounded-2xl bg-white border border-stone-200 p-5 shadow-sm flex gap-3">
+                      <div className="flex-1">
+                        <p className="font-bold text-stone-900 text-sm">{t.name} <span className="font-normal text-stone-400">• {t.role}</span></p>
+                        <p className="text-sm text-stone-600 mt-1">“{t.quote}”</p>
+                      </div>
+                      <button onClick={async () => { await deleteTestimonialRTDB(t.id); }} className="p-2 h-fit rounded-lg text-stone-300 hover:text-rose-600 hover:bg-rose-50" title="Delete"><Trash2 className="w-4 h-4" /></button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {contentMode === 'work' && (
+              <div className="grid lg:grid-cols-5 gap-4">
+                <div className="lg:col-span-2 rounded-3xl bg-white border border-stone-200 p-6 shadow-sm h-fit">
+                  <h4 className="font-bold text-stone-900 text-sm mb-4">Add work item</h4>
+                  <div className="space-y-3">
+                    <input value={pTitle} onChange={(e) => setPTitle(e.target.value)} placeholder="Project title *" className={inputCls} />
+                    <input value={pCat} onChange={(e) => setPCat(e.target.value)} placeholder="Category (e.g. E-commerce • WhatsApp orders)" className={inputCls} />
+                    <textarea value={pDesc} onChange={(e) => setPDesc(e.target.value)} rows={3} placeholder="Result description *" className={`${inputCls} resize-none`} />
+                    <input value={pStat} onChange={(e) => setPStat(e.target.value)} placeholder="Metric (e.g. +2.3x sales)" className={inputCls} />
+                    <button onClick={async () => {
+                      if (!pTitle.trim() || !pDesc.trim()) { showToast('Title + description required', 'error'); return; }
+                      await savePortfolioRTDB({ id: `wrk-${Date.now().toString(36)}`, title: pTitle.trim(), category: pCat.trim(), description: pDesc.trim(), stat: pStat.trim(), createdAt: new Date().toISOString() });
+                      setPTitle(''); setPCat(''); setPDesc(''); setPStat('');
+                      showToast('Work item live on site', 'success');
+                    }} className="w-full py-3 rounded-xl bg-stone-900 text-white text-sm font-bold hover:bg-stone-700">Publish work</button>
+                  </div>
+                </div>
+                <div className="lg:col-span-3 space-y-3">
+                  {portfolio.length === 0 && <EmptyBox text="No work items — homepage section hidden until you add one." />}
+                  {portfolio.map((w) => (
+                    <div key={w.id} className="rounded-2xl bg-white border border-stone-200 p-5 shadow-sm flex gap-3">
+                      <div className="flex-1">
+                        <p className="font-bold text-stone-900 text-sm">{w.title}</p>
+                        <p className="text-xs text-emerald-700 font-semibold">{w.category} • {w.stat}</p>
+                        <p className="text-sm text-stone-600 mt-1">{w.description}</p>
+                      </div>
+                      <button onClick={async () => { await deletePortfolioRTDB(w.id); }} className="p-2 h-fit rounded-lg text-stone-300 hover:text-rose-600 hover:bg-rose-50" title="Delete"><Trash2 className="w-4 h-4" /></button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* SETTINGS */}
         {tab === 'settings' && (
           <div className="max-w-xl rounded-3xl bg-white border border-stone-200 p-6 sm:p-8 space-y-4 shadow-sm">
             <div>
@@ -277,7 +403,7 @@ export const RtdbAdminPanel: React.FC = () => {
               onClick={async () => {
                 try {
                   await saveSettingsRTDB({ whatsappNumber: waNumber, heroNotice } as Partial<import('../types').SiteSettings>);
-                  showToast('Settings saved to RTDB — live instantly', 'success');
+                  showToast('Settings saved — live instantly', 'success');
                 } catch {
                   showToast('Save failed — check RTDB rules', 'error');
                 }
@@ -286,10 +412,10 @@ export const RtdbAdminPanel: React.FC = () => {
             >
               <Check className="w-4 h-4" /> Save settings
             </button>
-            <p className="text-xs text-stone-400">RTDB settings override everything — WhatsApp buttons update across the site immediately.</p>
           </div>
         )}
 
+        {/* PRODUCT MODAL */}
         {editing && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-stone-900/50 backdrop-blur-sm overflow-y-auto">
             <div className="w-full max-w-2xl my-8 bg-white rounded-[1.75rem] shadow-2xl p-6 sm:p-8 space-y-4 max-h-[90vh] overflow-y-auto">
@@ -325,6 +451,54 @@ export const RtdbAdminPanel: React.FC = () => {
           </div>
         )}
       </section>
+    </div>
+  );
+};
+
+const EmptyBox: React.FC<{ text: string }> = ({ text }) => (
+  <div className="py-16 px-6 text-center rounded-3xl bg-white border border-dashed border-stone-300 text-sm text-stone-400">{text}</div>
+);
+
+const AdminLogin: React.FC = () => {
+  const { showToast } = useApp();
+  const [email, setEmail] = useState(ADMIN_EMAIL);
+  const [password, setPassword] = useState('');
+  const [busy, setBusy] = useState(false);
+
+  const login = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (email.trim().toLowerCase() !== ADMIN_EMAIL) {
+      showToast('This email is not authorized for admin access', 'error');
+      return;
+    }
+    setBusy(true);
+    try {
+      await signInWithEmailAndPassword(auth, email.trim(), password);
+      showToast('Welcome back, Admin', 'success');
+    } catch {
+      try { await signOut(auth); } catch {}
+      showToast('Wrong password or account not found. Create the user in Firebase Console first.', 'error');
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-gradient-to-b from-stone-100 to-[#fafaf9] flex items-center justify-center px-5">
+      <div className="w-full max-w-md rounded-[2rem] bg-white border border-stone-200 shadow-xl p-8 text-center">
+        <span className="w-14 h-14 rounded-3xl bg-stone-900 text-white flex items-center justify-center mx-auto mb-5">
+          <Database className="w-6 h-6" />
+        </span>
+        <h2 className="text-2xl font-extrabold tracking-tight text-stone-900 mb-1">Sairah Labs — Admin</h2>
+        <p className="text-sm text-stone-500 mb-6">Sign in to manage your business.</p>
+        <form onSubmit={login} className="space-y-3 text-left">
+          <input value={email} onChange={(e) => setEmail(e.target.value)} placeholder="Admin email" className={inputCls} />
+          <input value={password} onChange={(e) => setPassword(e.target.value)} type="password" placeholder="Password" className={inputCls} />
+          <button type="submit" disabled={busy} className="w-full py-3.5 rounded-xl bg-stone-900 text-white text-sm font-bold hover:bg-stone-700 disabled:opacity-50">
+            {busy ? 'Signing in...' : 'Login to admin panel'}
+          </button>
+        </form>
+      </div>
     </div>
   );
 };

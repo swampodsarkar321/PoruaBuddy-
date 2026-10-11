@@ -12,9 +12,13 @@ import {
   rtdbSettingsRef,
   rtdbOrdersRef,
   rtdbInquiriesRef,
+  rtdbTestimonialsRef,
+  rtdbPortfolioRef,
   snapToProducts,
   snapToOrders,
   snapToInquiries,
+  snapToTestimonials,
+  snapToPortfolio,
   saveProductRTDB,
   deleteProductRTDB,
   saveOrderRTDB,
@@ -30,6 +34,8 @@ import {
   Order,
   Inquiry,
   SiteSettings,
+  Testimonial,
+  PortfolioItem,
   CartItem,
   ProductCategory,
   OrderStatus
@@ -102,6 +108,10 @@ interface AppContextType {
   submitInquiry: (data: Omit<Inquiry, 'id' | 'status' | 'createdAt'>) => Promise<void>;
   updateInquiryStatus: (id: string, status: 'New' | 'In Discussion' | 'Closed') => Promise<void>;
 
+  // Site content (admin-managed, hidden when empty)
+  testimonials: Testimonial[];
+  portfolio: PortfolioItem[];
+
   // Site Settings
   siteSettings: SiteSettings;
   updateSiteSettings: (settings: Partial<SiteSettings>) => Promise<void>;
@@ -159,6 +169,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [orders, setOrders] = useState<Order[]>([]);
   const [isLoadingOrders, setIsLoadingOrders] = useState(false);
   const [inquiries, setInquiries] = useState<Inquiry[]>([]);
+  const [testimonials, setTestimonials] = useState<Testimonial[]>([]);
+  const [portfolio, setPortfolio] = useState<PortfolioItem[]>([]);
   const [siteSettings, setSiteSettings] = useState<SiteSettings>(INITIAL_SITE_SETTINGS);
 
   // Cart state persisted to localStorage
@@ -246,6 +258,13 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }, () => {});
     return () => off();
   }, [isAdmin]);
+
+  // Sync public site content (testimonials + portfolio) from RTDB
+  useEffect(() => {
+    const off1 = onValue(rtdbTestimonialsRef(), (snap) => setTestimonials(snapToTestimonials(snap.val())), () => {});
+    const off2 = onValue(rtdbPortfolioRef(), (snap) => setPortfolio(snapToPortfolio(snap.val())), () => {});
+    return () => { off1(); off2(); };
+  }, []);
 
   // Cart Handlers
   const addToCart = (product: Product) => {
@@ -595,6 +614,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         inquiries,
         submitInquiry,
         updateInquiryStatus,
+        testimonials,
+        portfolio,
         siteSettings,
         updateSiteSettings,
         toast,
