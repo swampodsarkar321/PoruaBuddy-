@@ -1,7 +1,7 @@
 import React from 'react';
 import { Product } from '../types';
 import { useApp } from '../context/AppContext';
-import { ArrowUpRight } from 'lucide-react';
+import { ArrowUpRight, GitCompareArrows } from 'lucide-react';
 import { WhatsAppIcon } from './icons';
 import { Stars, avgRating } from './Stars';
 import { waLink, singleOrderMessage } from '../utils/whatsapp';
@@ -15,7 +15,7 @@ const ACCENT: Record<string, string> = {
 };
 
 export const ProductCard: React.FC<{ product: Product }> = ({ product }) => {
-  const { addToCart, setSelectedProduct, siteSettings, reviews } = useApp();
+  const { addToCart, setSelectedProduct, siteSettings, reviews, compareList, setCompareList } = useApp();
   const price = product.discountPriceBDT || product.priceBDT;
   const accent = ACCENT[product.category] || 'bg-stone-100 text-stone-500 border-stone-200';
   const initial = product.name.charAt(0).toUpperCase();
@@ -59,6 +59,13 @@ export const ProductCard: React.FC<{ product: Product }> = ({ product }) => {
         <div className="flex items-center gap-2">
           <button onClick={() => setSelectedProduct(product)} className="w-9 h-9 rounded-full border border-stone-200 flex items-center justify-center text-stone-400 hover:border-stone-900 hover:text-stone-900 transition" title="Details">
             <ArrowUpRight className="w-4 h-4" />
+          </button>
+          <button
+            onClick={() => setCompareList((prev) => prev.includes(product.id) ? prev.filter((x) => x !== product.id) : prev.length >= 2 ? [prev[1], product.id] : [...prev, product.id])}
+            className={`h-9 px-3 rounded-full border text-xs font-bold flex items-center gap-1 transition ${compareList.includes(product.id) ? 'bg-stone-900 text-white border-stone-900' : 'border-stone-200 text-stone-500 hover:border-stone-900 hover:text-stone-900'}`}
+            title="Compare"
+          >
+            <GitCompareArrows className="w-3.5 h-3.5" /> {compareList.includes(product.id) ? 'Added' : 'Compare'}
           </button>
           <button onClick={() => addToCart(product)} className="px-4 py-2.5 rounded-full border border-stone-200 text-stone-700 text-xs font-bold hover:border-stone-900 transition">Add</button>
           <a href={waLink(siteSettings.whatsappNumber, singleOrderMessage(product.name, price))} target="_blank" rel="noopener noreferrer" title="Order on WhatsApp"

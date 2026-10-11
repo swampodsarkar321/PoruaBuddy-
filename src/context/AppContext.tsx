@@ -123,6 +123,10 @@ interface AppContextType {
   t: (key: Key) => string;
   toggleLang: () => void;
 
+  // Product compare
+  compareList: string[];
+  setCompareList: React.Dispatch<React.SetStateAction<string[]>>;
+
   // Product reviews (user-submitted, admin-approved)
   reviews: ProductReview[];
   submitProductReview: (data: Omit<ProductReview, 'id' | 'status' | 'createdAt'>) => Promise<void>;
@@ -202,6 +206,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       return next;
     });
   };
+  const [compareList, setCompareList] = useState<string[]>([]);
   const [siteSettings, setSiteSettings] = useState<SiteSettings>(INITIAL_SITE_SETTINGS);
 
   // Cart state persisted to localStorage
@@ -674,6 +679,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         lang,
         t,
         toggleLang,
+        compareList,
+        setCompareList,
         siteSettings,
         updateSiteSettings,
         toast,
