@@ -41,6 +41,7 @@ import {
   OrderStatus
 } from '../types';
 import { INITIAL_PRODUCTS, INITIAL_SITE_SETTINGS } from '../data/initialProducts';
+import { INITIAL_TESTIMONIALS } from '../data/initialContent';
 
 interface AppContextType {
   // Navigation
@@ -169,7 +170,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [orders, setOrders] = useState<Order[]>([]);
   const [isLoadingOrders, setIsLoadingOrders] = useState(false);
   const [inquiries, setInquiries] = useState<Inquiry[]>([]);
-  const [testimonials, setTestimonials] = useState<Testimonial[]>([]);
+  const [testimonials, setTestimonials] = useState<Testimonial[]>(INITIAL_TESTIMONIALS);
   const [portfolio, setPortfolio] = useState<PortfolioItem[]>([]);
   const [siteSettings, setSiteSettings] = useState<SiteSettings>(INITIAL_SITE_SETTINGS);
 
@@ -259,9 +260,13 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     return () => off();
   }, [isAdmin]);
 
-  // Sync public site content (testimonials + portfolio) from RTDB
+  // Sync public site content (testimonials + portfolio) from RTDB.
+  // RTDB wins when it has data; otherwise starter content shows.
   useEffect(() => {
-    const off1 = onValue(rtdbTestimonialsRef(), (snap) => setTestimonials(snapToTestimonials(snap.val())), () => {});
+    const off1 = onValue(rtdbTestimonialsRef(), (snap) => {
+      const list = snapToTestimonials(snap.val());
+      setTestimonials(list.length > 0 ? list : INITIAL_TESTIMONIALS);
+    }, () => {});
     const off2 = onValue(rtdbPortfolioRef(), (snap) => setPortfolio(snapToPortfolio(snap.val())), () => {});
     return () => { off1(); off2(); };
   }, []);
