@@ -503,10 +503,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
     try {
       await pushInquiryRTDB(newInquiry);
-      showToast('Your inquiry has been submitted! We will contact you on WhatsApp/Phone.', 'success');
+      showToast('Message sent! We reply on WhatsApp within 2 hours.', 'success');
     } catch (err) {
-      console.warn('Inquiry cached locally:', err);
-      showToast('Thank you! Your request has been received.', 'success');
+      console.warn('Inquiry send failed:', err);
+      showToast("Couldn't send message. Please contact us directly on WhatsApp.", 'error');
+      throw err;
     }
 
     setInquiries((prev) => [newInquiry, ...prev]);

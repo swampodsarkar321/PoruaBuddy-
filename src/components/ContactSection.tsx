@@ -27,7 +27,7 @@ export const ContactSection: React.FC = () => {
     }
     setSending(true);
     try {
-      await submitInquiry({ name, email: 'contact@srsstudio.com', phone, serviceType: subject, message, budget: subject });
+      await submitInquiry({ name, email: 'contact@sairahlabs.com', phone, serviceType: subject, message, budget: subject });
       setName(''); setPhone(''); setMessage('');
       showToast('Message received! We reply on WhatsApp within 2 hours.', 'success');
     } catch {

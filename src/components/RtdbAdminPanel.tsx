@@ -170,7 +170,7 @@ export const RtdbAdminPanel: React.FC = () => {
             {([
               { id: 'products', label: 'Products', icon: ShoppingBag },
               { id: 'orders', label: 'Orders', icon: Package },
-              { id: 'inquiries', label: 'Inbox', icon: MessagesSquare },
+              { id: 'inquiries', label: 'Inbox • Live', icon: MessagesSquare },
               { id: 'settings', label: 'Settings', icon: Settings2 },
             ] as const).map((t) => (
               <button key={t.id} onClick={() => setTab(t.id)}
