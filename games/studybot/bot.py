@@ -33,8 +33,22 @@ def _health_loop():
 
 threading.Thread(target=_health_loop, daemon=True).start()
 
-SELF_URL = os.environ.get("SELF_URL", os.environ.get("APP_URL", ""))
+SELF_URL = os.environ.get("SELF_URL", os.environ.get("APP_URL", "https://poruabuddy.onrender.com"))
 LAST_PING = {"at": 0, "ok": False}
+
+AI = {"provider": "openrouter", "or_key": os.environ.get("OPENROUTER_KEY", ""), "gemini_key": os.environ.get("GEMINI_KEY", "")}
+
+
+def ask_gemini(q, key):
+    sys_q = SYS + " Question: " + q
+    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={key}"
+    r = requests.post(url, json={"contents": [{"parts": [{"text": sys_q}]}],
+                                 "generationConfig": {"maxOutputTokens": 1000}},
+                      timeout=60).json()
+    try:
+        return r["candidates"][0]["content"]["parts"][0]["text"].strip()[:3500]
+    except Exception:
+        return ""
 
 
 def _self_ping_loop():
@@ -125,7 +139,7 @@ QUIZ = load_bank()
 
 
 def ai_make_quiz(n=10):
-    h = {"Authorization": f"Bearer {OR_KEY}", "Content-Type": "application/json",
+    h = {"Authorization": f"Bearer {AI.get('or_key', OR_KEY)}", "Content-Type": "application/json",
          "HTTP-Referer": "https://t.me/PoruaBuddyBot", "X-Title": "PoruaBuddy"}
     prompt = (
         f"বাংলাদেশের ১ম-১০ম শ্রেণি, ভর্তি ও BCS সিলেবাস থেকে {n}টা MCQ বানাও। "
@@ -225,8 +239,12 @@ def banner():
 
 
 def ask(q, pro, cls=""):
+    if AI.get("provider") == "gemini" and AI.get("gemini_key"):
+        a = ask_gemini(q, AI["gemini_key"])
+        if a:
+            return a
     h = {
-        "Authorization": f"Bearer {OR_KEY}",
+        "Authorization": f"Bearer {AI.get('or_key', OR_KEY)}",
         "Content-Type": "application/json",
         "HTTP-Referer": "https://t.me/PoruaBuddyBot",
         "X-Title": "PoruaBuddy",
@@ -489,6 +507,16 @@ while True:
                     api("sendMessage", {"chat_id": c,
                         "text": "🚫 <b>Ban / Unban</b>\n\n<code>/ban USER_ID</code>\n<code>/unban USER_ID</code>\n\nGet IDs from 👥 All Users.",
                         "parse_mode": "HTML"})
+                elif data == "adm_keys":
+                    ADMIN = os.environ.get("ADMIN_ID", ADMIN_DEFAULT)
+                    if uid != str(ADMIN):
+                        continue
+                    cur = AI.get("provider", "openrouter")
+                    has_g = "✅ set" if AI.get("gemini_key") else "❌ empty"
+                    has_o = "✅ set" if AI.get("or_key") else "❌ empty"
+                    api("sendMessage", {"chat_id": c,
+                        "text": f"🔑 <b>AI Key Manager</b>\n\nActive: <b>{cur}</b>\nOpenRouter: {has_o}\nGemini: {has_g}\n\nChange like this:\n<code>/setkey gemini AIZA...</code>\n<code>/setkey openrouter sk-or-...</code>\n\n⚠️ Restart করলে env-এর key-তে ফিরে যাবে।",
+                        "parse_mode": "HTML"})
                 elif data == "fb_good":
                     api("answerCallbackQuery", {"callback_query_id": q["id"], "text": "Great! Keep going!"})
                 elif data == "fb_bad":
@@ -653,6 +681,33 @@ while True:
                         r = api("sendMessage", {"chat_id": c, "text": txt, "parse_mode": "HTML", "reply_markup": kb})
                         if r.get("result"):
                             p["pay_mid"] = r["result"]["message_id"]
+            elif tx.startswith("/setkey "):
+                ADMIN = os.environ.get("ADMIN_ID", ADMIN_DEFAULT)
+                if uid != str(ADMIN):
+                    api("sendMessage", {"chat_id": c, "text": "⛔ Admin only!"})
+                else:
+                    parts = tx.split(None, 2)
+                    if len(parts) < 3 or parts[1] not in ("gemini", "openrouter"):
+                        api("sendMessage", {"chat_id": c, "text": "Use:\n<code>/setkey gemini AIZA...</code>\n<code>/setkey openrouter sk-or-...</code>", "parse_mode": "HTML"})
+                    else:
+                        if parts[1] == "gemini":
+                            AI["gemini_key"] = parts[2].strip()
+                            AI["provider"] = "gemini"
+                        else:
+                            AI["or_key"] = parts[2].strip()
+                            AI["provider"] = "openrouter"
+                        try:
+                            t = "test" if parts[1] == "openrouter" else "test"
+                            ok = False
+                            if parts[1] == "gemini":
+                                ok = bool(ask_gemini("2+2 কত? শুধু সংখ্যা লেখো।", parts[2].strip()))
+                            else:
+                                rr = requests.post("https://openrouter.ai/api/v1/models",
+                                    headers={"Authorization": f"Bearer {parts[2].strip()}"}, timeout=20)
+                                ok = rr.status_code == 200
+                            api("sendMessage", {"chat_id": c, "text": f"{'✅ Key OK! Active: ' + parts[1] if ok else '⚠️ Key বসানো হয়েছে, কিন্তু test fail — চেক করো। Active: ' + parts[1]}"})
+                        except Exception:
+                            api("sendMessage", {"chat_id": c, "text": "⚠️ Key বসানো হয়েছে, test করা যায়নি।"})
             elif tx == "/admin":
                 ADMIN = os.environ.get("ADMIN_ID", ADMIN_DEFAULT)
                 if uid != str(ADMIN):
@@ -676,6 +731,7 @@ while True:
                              {"text": "📊 Daily Stats", "callback_data": "adm_stats"}],
                             [{"text": "📢 Broadcast", "callback_data": "adm_bc"},
                              {"text": "🚫 Ban/Unban", "callback_data": "adm_ban"}],
+                            [{"text": "🔑 AI Key", "callback_data": "adm_keys"}],
                         ]},
                     })
             elif tx.startswith("/broadcast "):
