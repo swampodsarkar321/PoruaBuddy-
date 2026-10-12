@@ -36,7 +36,7 @@ threading.Thread(target=_health_loop, daemon=True).start()
 SELF_URL = os.environ.get("SELF_URL", os.environ.get("APP_URL", "https://poruabuddy.onrender.com"))
 LAST_PING = {"at": 0, "ok": False}
 
-AI = {"provider": "openrouter", "or_key": os.environ.get("OPENROUTER_KEY", ""), "gemini_key": os.environ.get("GEMINI_KEY", "")}
+AI = {"provider": "gemini" if os.environ.get("GEMINI_KEY") else "openrouter", "or_key": os.environ.get("OPENROUTER_KEY", ""), "gemini_key": os.environ.get("GEMINI_KEY", "")}
 
 
 def ask_gemini(q, key):
