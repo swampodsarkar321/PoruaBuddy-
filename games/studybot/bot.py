@@ -41,7 +41,7 @@ AI = {"provider": "gemini" if os.environ.get("GEMINI_KEY") else "openrouter", "o
 
 def ask_gemini(q, key):
     sys_q = SYS + " Question: " + q
-    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={key}"
+    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={key}"
     r = requests.post(url, json={"contents": [{"parts": [{"text": sys_q}]}],
                                  "generationConfig": {"maxOutputTokens": 1000}},
                       timeout=60).json()
