@@ -32,6 +32,28 @@ def _health_loop():
 
 
 threading.Thread(target=_health_loop, daemon=True).start()
+
+SELF_URL = os.environ.get("SELF_URL", os.environ.get("APP_URL", ""))
+LAST_PING = {"at": 0, "ok": False}
+
+
+def _self_ping_loop():
+    while True:
+        time.sleep(600)
+        if not SELF_URL:
+            continue
+        try:
+            r = requests.get(SELF_URL.rstrip("/") + "/health", timeout=20)
+            LAST_PING["at"] = int(time.time())
+            LAST_PING["ok"] = r.status_code == 200
+            print("SELF_PING", r.status_code, flush=True)
+        except Exception as e:
+            LAST_PING["at"] = int(time.time())
+            LAST_PING["ok"] = False
+            print("SELF_PING_ERR", e, flush=True)
+
+
+threading.Thread(target=_self_ping_loop, daemon=True).start()
 API = f"https://api.telegram.org/bot{BOT}"
 
 MODELS_FALLBACK = [
@@ -640,9 +662,14 @@ while True:
                     pros = sum(1 for v in USERS.values() if v.get("pro", 0) > time.time())
                     today_q = sum(v.get("free", 0) for v in USERS.values() if v.get("day") == int(time.time()) // 86400)
                     banned = sum(1 for v in USERS.values() if v.get("banned"))
+                    if LAST_PING["at"]:
+                        ago = (int(time.time()) - LAST_PING["at"]) // 60
+                        ping = f"{'✅' if LAST_PING['ok'] else '❌'} {ago} min ago"
+                    else:
+                        ping = "⏳ not started" if not SELF_URL else "⏳ waiting"
                     api("sendMessage", {
                         "chat_id": c,
-                        "text": f"━━━━━━━━━━━━━━━\n🛠 <b>Admin Panel</b>\n━━━━━━━━━━━━━━━\n👥 Users: <b>{total}</b> | 🚫 Banned: <b>{banned}</b>\n⭐ Premium: <b>{pros}</b>\n📝 Today's Qs: <b>{today_q}</b>\n\n👇 Pick an action:",
+                        "text": f"━━━━━━━━━━━━━━━\n🛠 <b>Admin Panel</b>\n━━━━━━━━━━━━━━━\n👥 Users: <b>{total}</b> | 🚫 Banned: <b>{banned}</b>\n⭐ Premium: <b>{pros}</b>\n📝 Today's Qs: <b>{today_q}</b>\n💓 Self-ping: <b>{ping}</b>\n\n👇 Pick an action:",
                         "parse_mode": "HTML",
                         "reply_markup": {"inline_keyboard": [
                             [{"text": "👥 All Users", "callback_data": "adm_users"},
